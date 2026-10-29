@@ -112,14 +112,20 @@
   };
 
   // Internet / WAN status, from GET /goform/getStatus (the router's own home page polls this).
-  // state: "ok", "unplugged" (no WAN link), "no_ip" (cable ok but no address from the ISP) or "no_internet" (address but router says offline).
-  // The "unplugged" rule assumes wanSpeedCurrent is 0 with no cable; "code" is the router's raw wanConnectStatus so unknown values can be learned.
+  // wanConnectStatus is a code. Characters 3-6 are a message code (same table as the router's own status page):
+  //   xx01 WAN port disconnected, xx02 disconnected, xx03 connecting, xx04 connected/accessing, xx05 or xx08 no internet (ISP),
+  //   xx06 connected and online, 0207 IP conflict, 0307 PPPoE user/password rejected. (xx: 01 static, 02 DHCP, 03 PPPoE.)
+  // state: ok | unplugged | connecting | no_internet | ip_conflict | auth_failed | no_ip (fallback when the code is not known)
   P.internet = function () {
     return this._getJson("/goform/getStatus?random=" + Math.random() + "&modules=" + encodeURIComponent("internetStatus,systemInfo,wanAdvCfg,sysTime")).then(function (q) {
       var si = q.systemInfo || {}, adv = q.wanAdvCfg || {}, is = q.internetStatus || {}, st = q.sysTime || {};
-      var ip = si.statusWanIP || "", link = +adv.wanSpeedCurrent > 0, hasIp = !!ip && ip !== "0.0.0.0", net = st.internetState === "true";
-      var state = !link ? "unplugged" : !hasIp ? "no_ip" : !net ? "no_internet" : "ok";
-      return { state: state, ip: hasIp ? ip : "", gateway: si.statusWanGaterway || "", dns: si.statusWanDns1 || "", type: si.wanType || "", linkMbps: +adv.wanSpeedCurrent || 0, seconds: +si.wanConnectTime || 0, code: String(is.wanConnectStatus || "") };
+      var code = String(is.wanConnectStatus || ""), msg = code.slice(3, 7), kind = msg.slice(0, 2), n = msg.slice(2);
+      var ip = si.statusWanIP || "", hasIp = !!ip && ip !== "0.0.0.0", net = st.internetState === "true";
+      var state;
+      if (/^0[1-3](0[1-8])$/.test(msg)) {
+        state = { "01": "unplugged", "02": "connecting", "03": "connecting", "04": "connecting", "05": "no_internet", "06": "ok", "07": kind === "03" ? "auth_failed" : "ip_conflict", "08": "no_internet" }[n];
+      } else state = !hasIp ? "no_ip" : !net ? "no_internet" : "ok";
+      return { state: state, ip: hasIp ? ip : "", gateway: si.statusWanGaterway || "", dns: si.statusWanDns1 || "", type: si.wanType || "", linkMbps: +adv.wanSpeedCurrent || 0, seconds: +si.wanConnectTime || 0, code: code };
     });
   };
 
