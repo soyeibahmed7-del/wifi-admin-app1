@@ -64,6 +64,13 @@ h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.3; margin
 .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
 .tile .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
 :root[lang="bn"] .tile .k { letter-spacing: 0; text-transform: none; font-size: 13px; }
+.acl h2 { margin-bottom: 4px; }
+.acl .hint { color: var(--muted); font-size: 14px; margin: 6px 0 12px; }
+.acl-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); min-height: 48px; }
+.acl-row input { width: 22px; height: 22px; flex: none; accent-color: var(--accent); }
+.acl-row span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.acl-row small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 12px; }
+.acl-actions { margin-top: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .tile.tap { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .tile.tap:active { background: var(--accent-soft); }
 .tile .v { font-family: var(--font-mono); font-size: 26px; font-weight: 500; font-variant-numeric: tabular-nums; margin-top: 4px; }
@@ -206,6 +213,16 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     </div></section>
 
     <section class="view" id="view-devices" hidden><div class="main">
+      <div class="panel acl">
+        <h2 data-i18n="acl_title"></h2>
+        <div class="chips" id="acl-mode">
+          <button class="chip" type="button" data-m="deny" aria-pressed="true" data-i18n="acl_black"></button>
+          <button class="chip" type="button" data-m="pass" aria-pressed="false" data-i18n="acl_white"></button>
+        </div>
+        <p class="hint" id="acl-hint"></p>
+        <div id="acl-list"></div>
+        <div class="acl-actions"><button class="btn primary" type="button" id="acl-save" data-i18n="acl_save"></button><span id="acl-msg" class="hint"></span></div>
+      </div>
       <div class="toolbar">
         <input class="search" id="search" type="text" data-i18n-ph="search_ph">
         <div class="chips">
@@ -260,6 +277,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       wifi_note: "Changing the WiFi name or password and restarting the router are not in this version yet. Use the router page for those.",
       recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left", e_start: "Connected to the router",
       s_dummy: "",
+      acl_title: "Access list", acl_black: "Blacklist", acl_white: "Whitelist", acl_hint_deny: "Blacklist: ticked devices are kept out of the WiFi. Everyone else can connect.", acl_hint_pass: "Whitelist: only ticked devices can use the WiFi. Everyone else is kept out.", acl_save: "Save", acl_confirm: "Tap again to apply", acl_you: "This phone", acl_saved: "Saved.", acl_loading: "Loading…", acl_empty: "No devices yet.", acl_off: "Not saved yet",
       setup_title: "Set up", setup_sub: "Connect to your router once. Stay on your home WiFi.", s_url: "Router address", s_rpw: "Router admin password", s_apw: "New app password (6+ characters)", s_apw2: "Repeat app password", s_btn: "Save and connect", s_short: "App password needs at least 6 characters.", s_match: "The two app passwords do not match.", s_checking: "Connecting…", s_rbad: "The router did not accept that password.", app_settings: "App settings", app_settings_btn: "Change router or app password", app_settings_confirm: "Tap again to erase saved settings",
       x_blocked: "{n} blocked", x_unblocked: "{n} can use the internet again", x_limit: "{n}: {l}", updated: "Updated", confirm_block: "Tap again to block", err_prefix: "Router problem: "
     },
@@ -278,6 +296,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       wifi_note: "এই অ্যাপ থেকে ওয়াইফাইয়ের নাম বা পাসওয়ার্ড বদলানো এখনো তৈরি হয়নি। সেজন্য রাউটারের পেজ ব্যবহার করুন।",
       recent: "সাম্প্রতিক ঘটনা", e_block: "{n} ব্লক করা হয়েছে", e_unblock: "{n} আনব্লক করা হয়েছে", e_limit: "{n}-এর সীমা: {l}", e_in: "{n} যুক্ত হয়েছে", e_out: "{n} বেরিয়ে গেছে", e_start: "রাউটারের সাথে যুক্ত হয়েছে",
       s_dummy: "",
+      acl_title: "অ্যাক্সেস তালিকা", acl_black: "ব্ল্যাকলিস্ট", acl_white: "হোয়াইটলিস্ট", acl_hint_deny: "ব্ল্যাকলিস্ট: টিক দেওয়া ডিভাইস ওয়াইফাই ব্যবহার করতে পারবে না। বাকি সবাই পারবে।", acl_hint_pass: "হোয়াইটলিস্ট: শুধু টিক দেওয়া ডিভাইস ওয়াইফাই ব্যবহার করতে পারবে। বাকি সবাই আটকে যাবে।", acl_save: "সেভ করুন", acl_confirm: "প্রয়োগ করতে আবার চাপুন", acl_you: "এই ফোন", acl_saved: "সেভ হয়েছে।", acl_loading: "লোড হচ্ছে…", acl_empty: "এখনো কোনো ডিভাইস নেই।", acl_off: "এখনো সেভ হয়নি",
       setup_title: "সেটআপ", setup_sub: "একবার রাউটারের সাথে যুক্ত করুন। বাসার ওয়াইফাইতে থাকুন।", s_url: "রাউটারের ঠিকানা", s_rpw: "রাউটারের অ্যাডমিন পাসওয়ার্ড", s_apw: "অ্যাপের নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)", s_apw2: "অ্যাপের পাসওয়ার্ড আবার দিন", s_btn: "সেভ করে যুক্ত করুন", s_short: "অ্যাপের পাসওয়ার্ডে কমপক্ষে ৬টি অক্ষর লাগবে।", s_match: "দুটি পাসওয়ার্ড মেলেনি।", s_checking: "যুক্ত হচ্ছে…", s_rbad: "রাউটার ওই পাসওয়ার্ড গ্রহণ করেনি।", app_settings: "অ্যাপের সেটিংস", app_settings_btn: "রাউটার বা অ্যাপের পাসওয়ার্ড বদলান", app_settings_confirm: "সেভ করা তথ্য মুছতে আবার চাপুন",
       x_blocked: "{n} ব্লক করা হয়েছে", x_unblocked: "{n} আবার ইন্টারনেট ব্যবহার করতে পারবে", x_limit: "{n}: {l}", updated: "আপডেট", confirm_block: "ব্লক করতে আবার চাপুন", err_prefix: "রাউটারের সমস্যা: "
     }
@@ -292,6 +311,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   var UNLIMITED = 38528, LIMITS = [0, 1, 2, 5, 10]; // Mbps; the router keeps limits in KB/s
   var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>';
   var PC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 20h20"/></svg>';
+  var acl = { mode: "deny", sel: {}, saved: null, me: "", loaded: false, busy: false };
   var state = { devices: [], me: null, wifi: {} }, events = [], filter = "all", query = "", route = "overview", user = null, pending = {}, failing = false;
   var series = { d: [], u: [] }, MAXPTS = 40, timer = null, prevMap = null, ttimer;
 
@@ -326,6 +346,8 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       if (path === "/api/logout") { unlocked = false; rc = null; return {}; }
       if (!unlocked || !rc) throw e401();
       if (path === "/api/devices") return rc.snapshot();
+      if (path === "/api/filter") return rc.getFilter();
+      if (path === "/api/filter/set") return rc.setFilter(body.mode, body.macs).then(function () { return { ok: true }; });
       if (path === "/api/block") return rc.setBlocked(body.mac, !!body.blocked).then(function () { return { ok: true }; });
       if (path === "/api/limit") return rc.setLimit(body.mac, +body.kbps || 0).then(function () { return { ok: true }; });
       throw new Error("Not found");
@@ -344,12 +366,13 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     document.querySelectorAll("[data-lang-toggle]").forEach(function (el) { el.textContent = t("lang_btn"); });
     renderRoute(); renderAll();
   }
-  document.querySelectorAll("[data-lang-toggle]").forEach(function (b) { b.addEventListener("click", function () { lang = lang === "en" ? "bn" : "en"; try { localStorage.setItem("wifi-lang", lang); } catch (e) {} applyStatic(); }); });
+  document.querySelectorAll("[data-lang-toggle]").forEach(function (b) { b.addEventListener("click", function () { lang = lang === "en" ? "bn" : "en"; try { localStorage.setItem("wifi-lang", lang); } catch (e) {} applyStatic(); renderAcl(); }); });
 
   var VIEWS = ["overview", "devices", "wifi", "activity"];
   function renderRoute() {
     VIEWS.forEach(function (k) { $("#view-" + k).hidden = k !== route; var a = document.querySelector('[data-nav="' + k + '"]'); if (k === route) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     $("#page-title").textContent = t("title_" + route);
+    if (route === "devices" && !acl.loaded && !acl.busy) { acl.busy = true; loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
   }
   function readHash() { var h = (location.hash || "#overview").slice(1); route = VIEWS.indexOf(h) > -1 ? h : "overview"; renderRoute(); }
   window.addEventListener("hashchange", readHash);
@@ -416,7 +439,8 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     var p = $("#conn"); p.className = "pill " + (failing ? "bad" : "good"); p.textContent = failing ? t("reconnecting") : t("live");
     $("#who").textContent = user ? user.name + " (" + user.role + ")" : "";
   }
-  function renderAll() { renderTiles(); renderTop(); renderDevices(); renderWifi(); renderChart(); renderActivity(); renderStatus(); }
+  var aclSig = "";
+  function renderAll() { var sg = aclDevices().map(function (d) { return d.mac + d.name; }).join("|"); if (sg !== aclSig) { aclSig = sg; renderAcl(); } renderTiles(); renderTop(); renderDevices(); renderWifi(); renderChart(); renderActivity(); renderStatus(); }
 
   function poll() {
     return api("/api/devices").then(function (s) {
@@ -437,8 +461,44 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       failing = true; $("#err").hidden = false; $("#err").textContent = t("err_prefix") + e.message; renderStatus();
     });
   }
-  function start() { $("#setup").hidden = true; $("#login").hidden = true; $("#app").hidden = false; readHash(); prevMap = null; series = { d: [], u: [] }; poll(); clearInterval(timer); timer = setInterval(poll, 6000); }
+  function start() { acl.loaded = false; acl.busy = false; $("#setup").hidden = true; $("#login").hidden = true; $("#app").hidden = false; readHash(); prevMap = null; series = { d: [], u: [] }; poll(); clearInterval(timer); timer = setInterval(poll, 6000); }
   function signedOut() { clearInterval(timer); user = null; unlocked = false; $("#app").hidden = true; $("#setup").hidden = !!loadCfg(); $("#login").hidden = !loadCfg(); }
+
+  // ---- access list (blacklist / whitelist) ----
+  function aclDevices() {
+    var seen = {}, out = [];
+    state.devices.forEach(function (d) { seen[d.mac] = 1; out.push({ mac: d.mac, name: d.name }); });
+    if (acl.saved) acl.saved.list.forEach(function (m) { if (!seen[m.mac]) { seen[m.mac] = 1; out.push({ mac: m.mac, name: m.remark || m.hostname }); } });
+    return out;
+  }
+  function renderAcl() {
+    document.querySelectorAll("#acl-mode .chip").forEach(function (c) { c.setAttribute("aria-pressed", c.dataset.m === acl.mode ? "true" : "false"); });
+    $("#acl-hint").textContent = t("acl_hint_" + acl.mode);
+    $("#acl-save").disabled = acl.busy || !acl.loaded;
+    var box = $("#acl-list"), list = aclDevices();
+    if (!acl.loaded) { box.textContent = t("acl_loading"); return; }
+    if (!list.length) { box.textContent = t("acl_empty"); return; }
+    box.innerHTML = list.map(function (d) {
+      var me = d.mac === acl.me, forced = me, on = me ? acl.mode === "pass" : !!acl.sel[d.mac];
+      return '<label class="acl-row"><input type="checkbox" data-mac="' + d.mac + '"' + (on ? " checked" : "") + (forced ? " disabled" : "") + '><span>' + esc(d.name) + (me ? " · " + esc(t("acl_you")) : "") + '<small>' + d.mac + '</small></span></label>';
+    }).join("");
+  }
+  function loadAcl() {
+    return api("/api/filter").then(function (f) {
+      acl.saved = f; acl.me = f.me; acl.mode = f.mode; acl.sel = {}; f.list.forEach(function (m) { acl.sel[m.mac] = true; }); acl.loaded = true; renderAcl();
+    }).catch(function (e) { if (e.status === 401) return signedOut(); $("#acl-msg").textContent = e.message; });
+  }
+  document.querySelectorAll("#acl-mode .chip").forEach(function (c) { c.addEventListener("click", function () { acl.mode = c.dataset.m; renderAcl(); }); });
+  $("#acl-list").addEventListener("change", function (e) { var c = e.target.closest("[data-mac]"); if (c) acl.sel[c.dataset.mac] = c.checked; });
+  $("#acl-save").addEventListener("click", function () {
+    var b = this;
+    if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = t("acl_confirm"); setTimeout(function () { b.dataset.armed = ""; b.textContent = t("acl_save"); }, 3500); return; }
+    b.dataset.armed = ""; b.textContent = t("acl_save");
+    var macs = Object.keys(acl.sel).filter(function (m) { return acl.sel[m] && m !== acl.me; });
+    acl.busy = true; renderAcl(); $("#acl-msg").textContent = "";
+    api("/api/filter/set", { mode: acl.mode, macs: macs }).then(function () { toast(t("acl_saved")); return loadAcl(); })
+      .catch(function (er) { toast(er.message); $("#acl-msg").textContent = er.message; }).then(function () { acl.busy = false; renderAcl(); });
+  });
 
   $("#devices").addEventListener("click", function (e) {
     var b = e.target.closest("[data-block]"); if (!b) return;

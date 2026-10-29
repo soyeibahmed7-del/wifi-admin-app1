@@ -139,6 +139,46 @@
     return this._change(mac, function (d) { d.limitDownKBps = d.limitUpKBps = kbps > 0 ? Math.round(kbps) : UNLIMITED; });
   };
 
+  // ---- MAC filter: blacklist ("deny": listed devices are kept out) or whitelist ("pass": only listed devices get in).
+  // Recorded from the router's Advanced page: GET /goform/getNAT, and POST /goform/setNAT which always carries ALL the
+  // modules of that page, so we read the current values first and send them back unchanged. Only module6 changes.
+  var NAT_MODULES = "staticIPList,IPTV,portList,ddns,dmz,upnp,lanCfg,macFilter,localhost,wifiRelay,onlineList,ping,productInfo";
+  P._nat = function () { return this._getJson("/goform/getNAT?random=" + Math.random() + "&modules=" + encodeURIComponent(NAT_MODULES)); };
+  function natView(n) {
+    var mf = n.macFilter || {}, names = {};
+    (n.onlineList || []).forEach(function (o) { names[String(o.qosListMac).toLowerCase()] = { hostname: o.qosListHostname, remark: o.qosListRemark }; });
+    var list = (mf.macFilterList || []).map(function (m) { return { mac: String(m.mac).toLowerCase(), hostname: m.hostname || "Unknown", remark: m.remark || "" }; });
+    return { mode: mf.curFilterMode === "pass" ? "pass" : "deny", list: list, me: ((n.localhost || {}).localhostMAC || "").toLowerCase(), names: names };
+  }
+  P.getFilter = function () { return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
+  P.setFilter = function (mode, macs) {
+    var self = this;
+    if (mode !== "pass" && mode !== "deny") return Promise.reject(new Error("Unknown mode"));
+    return this._nat().then(function (n) {
+      var v = natView(n), want = [];
+      (macs || []).forEach(function (m) { m = String(m).toLowerCase(); if (want.indexOf(m) < 0) want.push(m); });
+      if (mode === "pass") { if (v.me && want.indexOf(v.me) < 0) want.push(v.me); }
+      else if (v.me && want.indexOf(v.me) > -1) throw new Error("This is the phone running the app. Blacklisting it would lock you out.");
+      if (mode === "pass" && !want.length) throw new Error("The whitelist is empty. Everyone would be blocked.");
+      if ((n.staticIPList || []).length || (n.portList || []).length || (n.IPTV && String(n.IPTV.IPTVEn) === "true"))
+        throw new Error("Your router has static IP, port forwarding or IPTV settings. This app cannot rewrite them safely, so it stopped.");
+      var known = {}; v.list.forEach(function (m) { known[m.mac] = m; });
+      var rows = want.map(function (m) {
+        var k = known[m] || v.names[m] || {};
+        return [k.hostname || "Unknown", k.remark || "", m].join("\t");
+      });
+      var dd = n.ddns || {}, e = encodeURIComponent, F = function (x) { return e(x == null ? "" : String(x)); };
+      var form = "module6=macFilter&filterMode=" + mode + "&macFilterList=" + e(rows.length ? rows.join("\n") + "\n" : "") +
+        "&module8=ping&pingEn=" + F((n.ping || {}).pingEn) +
+        "&module1=staticIPList&staticList=&module2=portList&portList=" +
+        "&module3=dmz&dmzEn=" + F((n.dmz || {}).dmzEn) + "&dmzHostIP=" + F((n.dmz || {}).dmzHostIP) +
+        "&module4=ddns&ddnsEn=" + F(dd.ddnsEn) + "&ddnsServiceName=" + F(dd.ddnsServiceName) + "&ddnsServer=" + F(dd.ddnsServer) + "&ddnsUser=" + F(dd.ddnsUser) + "&ddnsPwd=" + F(dd.ddnsPwd) +
+        "&module5=upnp&upnpEn=" + F((n.upnp || {}).upnpEn) +
+        "&module7=IPTV&IPTVEn=false&VLANArea=&VLANID=&VLANSelect=";
+      return self._post("/goform/setNAT", form);
+    });
+  };
+
   RouterClient.UNLIMITED = UNLIMITED;
   return RouterClient;
 });

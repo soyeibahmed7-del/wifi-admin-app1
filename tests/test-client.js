@@ -18,6 +18,7 @@ const state = {
   ],
   deny: [],
   lastSetQos: null,
+  nat: { mode: "deny", list: [{ hostname: "SOYEIB", remark: "Laptop", mac: "fc:01:7c:a1:0b:f7" }], lastForm: null },
 };
 function getQos() {
   return JSON.stringify({
@@ -46,6 +47,19 @@ const server = http.createServer((req, res) => {
       const find = (mac) => all.find((d) => d.mac === mac.toLowerCase());
       state.online = onl.map((r) => Object.assign(find(r[2]), { lim: (+r[3]).toFixed(2) }));
       state.deny = blk.map((r) => find(r[2]));
+      res.writeHead(200); return res.end(enc('{"errCode":0}'));
+    }
+    if (req.url.startsWith("/goform/getNAT")) {
+      res.writeHead(200); return res.end(enc(JSON.stringify({ staticIPList: [], IPTV: { IPTVEn: "false", VLANID: [] }, portList: [],
+        ddns: { ddnsEn: "false", ddnsServiceName: "oray.com", ddnsUser: "", ddnsPwd: "secret!", ddnsServer: "" }, dmz: { dmzEn: "false", dmzHostIP: "" }, upnp: { upnpEn: "true" },
+        macFilter: { curFilterMode: state.nat.mode, macFilterList: state.nat.list.map((m) => Object.assign({ filterMode: "pass" }, m)) },
+        localhost: { localhostMAC: state.me }, ping: { pingEn: "true" },
+        onlineList: state.online.map((d) => ({ qosListHostname: d.host, qosListRemark: d.remark, qosListMac: d.mac })) })));
+    }
+    if (req.url === "/goform/setNAT" && req.method === "POST") {
+      const form = new URLSearchParams(dec(body)); state.nat.lastForm = form;
+      state.nat.mode = form.get("filterMode");
+      state.nat.list = (form.get("macFilterList") || "").split("\n").filter(Boolean).map((r) => { const c = r.split("\t"); return { hostname: c[0], remark: c[1], mac: c[2] }; });
       res.writeHead(200); return res.end(enc('{"errCode":0}'));
     }
     res.writeHead(404); res.end();
@@ -100,6 +114,18 @@ server.listen(0, async () => {
     rc.cookie = ""; // session lost -> should log in again by itself
     s = await rc.snapshot(); assert.ok(s.devices.length >= 1);
     console.log("auto re-login: ok");
+    let f = await rc.getFilter();
+    assert.strictEqual(f.mode, "deny"); assert.strictEqual(f.list.length, 1);
+    await assert.rejects(() => rc.setFilter("deny", ["fc:01:7c:a1:0b:f7"]), /lock you out/);
+    await rc.setFilter("pass", ["aa:b3:7d:a1:46:ee"]); // own phone must be added automatically
+    f = await rc.getFilter();
+    assert.strictEqual(f.mode, "pass"); assert.deepStrictEqual(f.list.map((m) => m.mac).sort(), ["aa:b3:7d:a1:46:ee", "fc:01:7c:a1:0b:f7"]);
+    const sent = state.nat.lastForm;
+    assert.strictEqual(sent.get("ddnsPwd"), "secret!"); assert.strictEqual(sent.get("upnpEn"), "true"); assert.strictEqual(sent.get("pingEn"), "true");
+    assert.ok(sent.toString().startsWith("module6=macFilter&filterMode=pass&macFilterList="));
+    await rc.setFilter("deny", []);
+    f = await rc.getFilter(); assert.strictEqual(f.mode, "deny"); assert.strictEqual(f.list.length, 0);
+    console.log("whitelist/blacklist: ok (own phone protected, other settings kept)");
     console.log("ALL TESTS PASSED");
   } catch (e) { console.error("FAILED:", e); process.exitCode = 1; }
   server.close();
