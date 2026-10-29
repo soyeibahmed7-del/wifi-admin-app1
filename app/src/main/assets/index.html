@@ -189,6 +189,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       <div><h1 id="page-title"></h1><p class="sub"><span id="who"></span> · <span id="updated"></span></p></div>
       <div class="top-actions">
         <span class="pill good" id="conn"></span>
+        <button class="btn" id="open-router" type="button" aria-label="Router page" data-i18n-title="router_page" title="Router page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20"/></svg></button>
         <button class="btn" type="button" data-lang-toggle></button>
         <button class="btn" id="logout" type="button" data-i18n="logout"></button>
       </div>
@@ -278,7 +279,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       brand: "WiFi Admin", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity",
       title_overview: "Overview", title_devices: "Devices", title_wifi: "WiFi", title_activity: "Activity",
       login_title: "Sign in", login_sub: "Enter your app password.", l_pass: "App password", login_btn: "Sign in",
-      login_bad: "Wrong password.", logout: "Log out", lang_btn: "বাংলা",
+      login_bad: "Wrong password.", logout: "Log out", router_page: "Open router page", guest_pill: "Guest", guest_note: "Guest devices can only be viewed.", lang_btn: "বাংলা",
       online: "Online", offline: "Offline", blocked: "Blocked", reconnecting: "Router not reachable", live: "Live",
       t_online: "Online devices", t_down: "Download", t_up: "Upload", t_blocked: "Blocked",
       chart_title: "Traffic, last 2 minutes", lg_down: "Download", lg_up: "Upload", ago: "2 min ago", nowl: "now",
@@ -298,7 +299,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       brand: "ওয়াইফাই অ্যাডমিন", nav_overview: "ওভারভিউ", nav_devices: "ডিভাইস", nav_wifi: "ওয়াইফাই", nav_activity: "কার্যকলাপ",
       title_overview: "ওভারভিউ", title_devices: "ডিভাইস", title_wifi: "ওয়াইফাই", title_activity: "কার্যকলাপ",
       login_title: "লগইন", login_sub: "অ্যাপের পাসওয়ার্ড দিন।", l_pass: "অ্যাপের পাসওয়ার্ড", login_btn: "লগইন",
-      login_bad: "পাসওয়ার্ড ভুল।", logout: "লগ আউট", lang_btn: "English",
+      login_bad: "পাসওয়ার্ড ভুল।", logout: "লগ আউট", router_page: "রাউটারের পেজ খুলুন", guest_pill: "গেস্ট", guest_note: "গেস্ট ডিভাইস শুধু দেখা যায়।", lang_btn: "English",
       online: "অনলাইন", offline: "অফলাইন", blocked: "ব্লক করা", reconnecting: "রাউটার পাওয়া যাচ্ছে না", live: "লাইভ",
       t_online: "অনলাইন ডিভাইস", t_down: "ডাউনলোড", t_up: "আপলোড", t_blocked: "ব্লক করা",
       chart_title: "ট্রাফিক, শেষ ২ মিনিট", lg_down: "ডাউনলোড", lg_up: "আপলোড", ago: "২ মিনিট আগে", nowl: "এখন",
@@ -376,6 +377,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function applyStatic() {
     document.documentElement.lang = lang;
     document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-title]").forEach(function (el) { el.title = t(el.dataset.i18nTitle); el.setAttribute("aria-label", el.title); });
     document.querySelectorAll("[data-i18n-ph]").forEach(function (el) { el.placeholder = t(el.dataset.i18nPh); });
     document.querySelectorAll("[data-lang-toggle]").forEach(function (el) { el.textContent = t("lang_btn"); });
     renderRoute(); renderAll();
@@ -425,7 +427,12 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       if (filter === "blocked" && !d.blocked) return false;
       return !q || (d.name + " " + d.ip + " " + d.mac).toLowerCase().indexOf(q) > -1;
     });
-    if (!list.length) { $("#devices").innerHTML = '<div class="panel">' + t("no_match") + "</div>"; return; }
+    var guests = filter === "blocked" ? [] : (state.guests || []).filter(function (g) { return !q || (g.name + " " + g.ip + " " + g.mac).toLowerCase().indexOf(q) > -1; });
+    var gHtml = guests.map(function (g) {
+      return '<div class="dev"><div class="ico">' + ICON + '</div><div><div class="name">' + esc(g.name) + ' <span class="pill warn">' + t("guest_pill") + '</span> <span class="pill good">' + t("online") + '</span></div><div class="meta">' + esc(g.ip) + " · " + g.mac + " · " + g.band + '</div></div>' +
+        '<div class="use">' + t("u_now") + " <b>↓ " + num(mbps(g.downKBps), 2) + " ↑ " + num(mbps(g.upKBps), 2) + " Mbps</b></div></div>";
+    }).join("");
+    if (!list.length && !guests.length) { $("#devices").innerHTML = '<div class="panel">' + t("no_match") + "</div>"; return; }
     $("#devices").innerHTML = list.map(function (d) {
       var st = d.blocked ? '<span class="pill bad">' + t("blocked") + "</span>" : d.online ? '<span class="pill good">' + t("online") + "</span>" : '<span class="pill warn">' + t("offline") + "</span>";
       var me = isMe(d) ? ' <span class="pill warn">' + t("this_pc") + "</span>" : "";
@@ -439,7 +446,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
         '<div><div class="name">' + esc(d.name) + " " + st + me + '</div><div class="meta">' + (d.ip ? d.ip + " · " : "") + d.mac + (d.band ? " · " + d.band.replace("wifi_", "") : "") + "</div></div>" +
         '<div class="use">' + use + "</div>" +
         '<div class="acts"><label>' + t("limit") + ' <select data-limit="' + d.mac + '"' + (d.blocked || !d.online || busy ? " disabled" : "") + ">" + opts + "</select></label>" + blockBtn + "</div></div>";
-    }).join("");
+    }).join("") + gHtml;
   }
   function renderWifi() {
     var w = state.wifi || {};
@@ -550,6 +557,11 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     e.preventDefault(); $("#login-err").textContent = "";
     api("/api/login", { password: $("#l-pass").value }).then(function (u) { user = u; $("#l-pass").value = ""; start(); })
       .catch(function (er) { $("#login-err").textContent = er.status === 401 ? t("login_bad") : er.message; });
+  });
+  $("#open-router").addEventListener("click", function () {
+    var u = (cfg && cfg.url) || "http://192.168.1.1", ok = false;
+    try { ok = Native.openUrl(u); } catch (e) {}
+    if (!ok) { try { window.open(u, "_blank"); } catch (e) {} }
   });
   $("#logout").addEventListener("click", function () { api("/api/logout", {}).catch(function () {}).then(signedOut); });
 

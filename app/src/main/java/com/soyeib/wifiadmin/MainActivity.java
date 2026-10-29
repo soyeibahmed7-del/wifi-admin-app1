@@ -1,6 +1,8 @@
 package com.soyeib.wifiadmin;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
@@ -132,6 +134,20 @@ public class MainActivity extends Activity {
                     }
                 }
             });
+        }
+
+        /** Opens the router's own admin page in the phone's browser. Only http/https addresses. */
+        @JavascriptInterface
+        public boolean openUrl(String url) {
+            try {
+                if (url == null || !(url.startsWith("http://") || url.startsWith("https://"))) return false;
+                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
         }
 
         @JavascriptInterface
