@@ -182,6 +182,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       <a href="#devices" data-nav="devices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="10" rx="1.5"/><path d="M0 19h18"/><rect x="18" y="8" width="5" height="11" rx="1"/></svg><span data-i18n="nav_devices"></span></a>
       <a href="#wifi" data-nav="wifi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg><span data-i18n="nav_wifi"></span></a>
       <a href="#activity" data-nav="activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span data-i18n="nav_activity"></span></a>
+      <a href="#settings" data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="nav_settings"></span></a>
     </nav>
   </aside>
   <main class="main">
@@ -190,8 +191,6 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       <div class="top-actions">
         <span class="pill good" id="conn"></span>
         <button class="btn" id="open-router" type="button" aria-label="Router page" data-i18n-title="router_page" title="Router page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20"/></svg></button>
-        <button class="btn" type="button" data-lang-toggle></button>
-        <button class="btn" id="logout" type="button" data-i18n="logout"></button>
       </div>
     </div>
     <div class="notice err" id="err" hidden></div>
@@ -199,17 +198,8 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     <section class="view" id="view-overview"><div class="main">
       <div class="tiles">
         <div class="tile tap" data-go="online" role="link" tabindex="0"><div class="k" data-i18n="t_online"></div><div class="v" id="t-online">0</div></div>
-        <div class="tile"><div class="k" data-i18n="t_down"></div><div class="v"><span id="t-down">0</span><small>Mbps</small></div></div>
-        <div class="tile"><div class="k" data-i18n="t_up"></div><div class="v"><span id="t-up">0</span><small>Mbps</small></div></div>
         <div class="tile tap" data-go="blocked" role="link" tabindex="0"><div class="k" data-i18n="t_blocked"></div><div class="v" id="t-blocked">0</div></div>
-      </div>
-      <div class="two">
-        <div class="panel">
-          <h2 data-i18n="chart_title"></h2>
-          <div class="legend"><span><i style="background:var(--accent)"></i><span data-i18n="lg_down"></span></span><span><i style="background:var(--warn)"></i><span data-i18n="lg_up"></span></span></div>
-          <svg class="chart" id="chart" viewBox="0 0 480 190" role="img"></svg>
-        </div>
-        <div class="panel"><h2 data-i18n="top_title"></h2><ul class="top-list" id="top-users"></ul></div>
+        <div class="tile tap" data-route="wifi" role="link" tabindex="0"><div class="k" data-i18n="t_guests"></div><div class="v" id="t-guests">0</div></div>
       </div>
     </div></section>
 
@@ -258,9 +248,26 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
         <div id="g-devs"></div>
       </div>
       <div class="notice" data-i18n="wifi_note"></div>
+    </div></section>
+
+    <section class="view" id="view-settings" hidden><div class="main">
+      <div class="panel">
+        <h2 data-i18n="set_lang"></h2>
+        <div class="chips" id="lang-set">
+          <button class="chip" type="button" data-lang-set="en" aria-pressed="true">English</button>
+          <button class="chip" type="button" data-lang-set="bn" aria-pressed="false">বাংলা</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 data-i18n="set_router"></h2>
+        <button class="btn" id="open-router2" type="button" data-i18n="router_page"></button>
+      </div>
       <div class="panel">
         <h2 data-i18n="app_settings"></h2>
         <button class="btn" id="reset-app" type="button" data-i18n="app_settings_btn"></button>
+      </div>
+      <div class="panel">
+        <button class="btn danger" id="logout" type="button" data-i18n="logout"></button>
       </div>
     </div></section>
 
@@ -276,8 +283,8 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
 (function () {
   var T = {
     en: {
-      brand: "WiFi Admin", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity",
-      title_overview: "Overview", title_devices: "Devices", title_wifi: "WiFi", title_activity: "Activity",
+      brand: "WiFi Admin", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity", nav_settings: "Settings",
+      title_overview: "Overview", title_devices: "Devices", title_wifi: "WiFi", title_activity: "Activity", title_settings: "Settings", set_lang: "Language", set_router: "Router", t_guests: "Guest devices",
       login_title: "Sign in", login_sub: "Enter your app password.", l_pass: "App password", login_btn: "Sign in",
       login_bad: "Wrong password.", logout: "Log out", router_page: "Open router page", guest_pill: "Guest", guest_note: "Guest devices can only be viewed.", lang_btn: "বাংলা",
       online: "Online", offline: "Offline", blocked: "Blocked", reconnecting: "Router not reachable", live: "Live",
@@ -296,8 +303,8 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       x_blocked: "{n} blocked", x_unblocked: "{n} can use the internet again", x_limit: "{n}: {l}", updated: "Updated", confirm_block: "Tap again to block", err_prefix: "Router problem: "
     },
     bn: {
-      brand: "ওয়াইফাই অ্যাডমিন", nav_overview: "ওভারভিউ", nav_devices: "ডিভাইস", nav_wifi: "ওয়াইফাই", nav_activity: "কার্যকলাপ",
-      title_overview: "ওভারভিউ", title_devices: "ডিভাইস", title_wifi: "ওয়াইফাই", title_activity: "কার্যকলাপ",
+      brand: "ওয়াইফাই অ্যাডমিন", nav_overview: "ওভারভিউ", nav_devices: "ডিভাইস", nav_wifi: "ওয়াইফাই", nav_activity: "কার্যকলাপ", nav_settings: "সেটিংস",
+      title_overview: "ওভারভিউ", title_devices: "ডিভাইস", title_wifi: "ওয়াইফাই", title_activity: "কার্যকলাপ", title_settings: "সেটিংস", set_lang: "ভাষা", set_router: "রাউটার", t_guests: "গেস্ট ডিভাইস",
       login_title: "লগইন", login_sub: "অ্যাপের পাসওয়ার্ড দিন।", l_pass: "অ্যাপের পাসওয়ার্ড", login_btn: "লগইন",
       login_bad: "পাসওয়ার্ড ভুল।", logout: "লগ আউট", router_page: "রাউটারের পেজ খুলুন", guest_pill: "গেস্ট", guest_note: "গেস্ট ডিভাইস শুধু দেখা যায়।", lang_btn: "English",
       online: "অনলাইন", offline: "অফলাইন", blocked: "ব্লক করা", reconnecting: "রাউটার পাওয়া যাচ্ছে না", live: "লাইভ",
@@ -382,9 +389,9 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     document.querySelectorAll("[data-lang-toggle]").forEach(function (el) { el.textContent = t("lang_btn"); });
     renderRoute(); renderAll();
   }
-  document.querySelectorAll("[data-lang-toggle]").forEach(function (b) { b.addEventListener("click", function () { lang = lang === "en" ? "bn" : "en"; try { localStorage.setItem("wifi-lang", lang); } catch (e) {} applyStatic(); renderAcl(); }); });
+  document.querySelectorAll("[data-lang-toggle]").forEach(function (b) { b.addEventListener("click", function () { lang = lang === "en" ? "bn" : "en"; try { localStorage.setItem("wifi-lang", lang); } catch (e) {} applyStatic(); renderAcl(); markLang(); }); });
 
-  var VIEWS = ["overview", "devices", "wifi", "activity"];
+  var VIEWS = ["overview", "devices", "wifi", "activity", "settings"];
   function renderRoute() {
     VIEWS.forEach(function (k) { $("#view-" + k).hidden = k !== route; var a = document.querySelector('[data-nav="' + k + '"]'); if (k === route) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     $("#page-title").textContent = t("title_" + route);
@@ -397,8 +404,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     var on = state.devices.filter(function (d) { return d.online && !d.blocked; });
     $("#t-online").textContent = num(on.length);
     $("#t-blocked").textContent = num(state.devices.filter(function (d) { return d.blocked; }).length);
-    var dn = on.reduce(function (a, d) { return a + d.downKBps; }, 0), up = on.reduce(function (a, d) { return a + d.upKBps; }, 0);
-    $("#t-down").textContent = num(mbps(dn), 2); $("#t-up").textContent = num(mbps(up), 2);
+    $("#t-guests").textContent = num((state.guests || []).length);
   }
   function renderTop() {
     var list = state.devices.filter(function (d) { return d.online && d.downKBps + d.upKBps > 0; }).sort(function (a, b) { return b.downKBps + b.upKBps - a.downKBps - a.upKBps; }).slice(0, 5);
@@ -470,7 +476,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     $("#who").textContent = user ? user.name + " (" + user.role + ")" : "";
   }
   var aclSig = "";
-  function renderAll() { var sg = aclDevices().map(function (d) { return d.mac + d.name; }).join("|"); if (sg !== aclSig) { aclSig = sg; renderAcl(); } renderTiles(); renderTop(); renderDevices(); renderWifi(); renderChart(); renderActivity(); renderStatus(); }
+  function renderAll() { var sg = aclDevices().map(function (d) { return d.mac + d.name; }).join("|"); if (sg !== aclSig) { aclSig = sg; renderAcl(); } renderTiles(); renderDevices(); renderWifi(); renderActivity(); renderStatus(); }
 
   function poll() {
     return api("/api/devices").then(function (s) {
@@ -482,8 +488,6 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       } else log("e_start", {});
       prevMap = map; state.devices = s.devices; state.guests = s.guests || []; state.me = s.me; state.wifi = s.wifi;
       var on = s.devices.filter(function (d) { return d.online && !d.blocked; });
-      series.d.push(mbps(on.reduce(function (a, d) { return a + d.downKBps; }, 0))); series.u.push(mbps(on.reduce(function (a, d) { return a + d.upKBps; }, 0)));
-      if (series.d.length > MAXPTS) { series.d.shift(); series.u.shift(); }
       $("#updated").textContent = t("updated") + " " + nowStr();
       renderAll();
     }).catch(function (e) {
@@ -547,7 +551,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   });
   $("#search").addEventListener("input", function (e) { query = e.target.value; renderDevices(); });
   document.querySelectorAll(".tile.tap").forEach(function (t) {
-    function go() { document.querySelector('.chip[data-f="' + t.dataset.go + '"]').click(); location.hash = "#devices"; }
+    function go() { if (t.dataset.route) { location.hash = "#" + t.dataset.route; return; } document.querySelector('.chip[data-f="' + t.dataset.go + '"]').click(); location.hash = "#devices"; }
     t.addEventListener("click", go);
     t.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
   });
@@ -558,11 +562,16 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     api("/api/login", { password: $("#l-pass").value }).then(function (u) { user = u; $("#l-pass").value = ""; start(); })
       .catch(function (er) { $("#login-err").textContent = er.status === 401 ? t("login_bad") : er.message; });
   });
-  $("#open-router").addEventListener("click", function () {
+  function setLang(l) { lang = l; try { localStorage.setItem("wifi-lang", lang); } catch (e) {} applyStatic(); renderAcl(); renderAll(); markLang(); }
+  function markLang() { document.querySelectorAll("[data-lang-set]").forEach(function (c) { c.setAttribute("aria-pressed", c.dataset.langSet === lang ? "true" : "false"); }); }
+  document.querySelectorAll("[data-lang-set]").forEach(function (c) { c.addEventListener("click", function () { setLang(c.dataset.langSet); }); });
+  markLang();
+  function openRouter() {
     var u = (cfg && cfg.url) || "http://192.168.1.1", ok = false;
     try { ok = Native.openUrl(u); } catch (e) {}
     if (!ok) { try { window.open(u, "_blank"); } catch (e) {} }
-  });
+  }
+  $("#open-router").addEventListener("click", openRouter); $("#open-router2").addEventListener("click", openRouter);
   $("#logout").addEventListener("click", function () { api("/api/logout", {}).catch(function () {}).then(signedOut); });
 
   applyStatic();
