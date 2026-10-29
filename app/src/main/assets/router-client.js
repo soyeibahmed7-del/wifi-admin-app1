@@ -105,8 +105,8 @@
           devices.push({ mac: mac, name: m.remark || m.hostname || "Unknown", hostname: m.hostname, ip: "", band: "", online: false, blocked: true, downKBps: 0, upKBps: 0, limitDownKBps: 0, limitUpKBps: 0, seconds: 0 });
         }
       });
-      var w = q.wifiBasicCfg || {};
-      return { me: q.localhost, devices: devices, wifi: { ssid24: w.wifiSSID, ssid5: w.wifiSSID_5G, security: w.wifiSecurityMode } };
+      var w = q.wifiBasicCfg || {}, g = q.wifiGuest || {};
+      return { me: q.localhost, devices: devices, wifi: { ssid24: w.wifiSSID, ssid5: w.wifiSSID_5G, security: w.wifiSecurityMode, guest: { on24: g.guestEn === "true", on5: g.guestEn_5G === "true", ssid24: g.guestSSID, ssid5: g.guestSSID_5G, open: g.guestSecurityMode === "NONE", speedKBps: +g.guestShareSpeed || 0, time: g.guestValidTime } } };
     });
   };
 

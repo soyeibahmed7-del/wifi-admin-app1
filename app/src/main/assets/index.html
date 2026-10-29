@@ -244,6 +244,16 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
           <dt data-i18n="w_pc"></dt><dd id="w-pc"></dd>
         </dl>
       </div>
+      <div class="panel">
+        <h2 data-i18n="g_title"></h2>
+        <dl class="kv">
+          <dt data-i18n="g_state"></dt><dd id="g-state"></dd>
+          <dt data-i18n="w_24"></dt><dd id="g-24"></dd>
+          <dt data-i18n="w_5"></dt><dd id="g-5"></dd>
+          <dt data-i18n="w_sec"></dt><dd id="g-sec"></dd>
+          <dt data-i18n="g_speed"></dt><dd id="g-speed"></dd>
+        </dl>
+      </div>
       <div class="notice" data-i18n="wifi_note"></div>
       <div class="panel">
         <h2 data-i18n="app_settings"></h2>
@@ -273,6 +283,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "Fastest right now", none_active: "No device is using the internet right now.",
       search_ph: "Search name, IP or MAC", f_all: "All", f_online: "Online", f_blocked: "Blocked", no_match: "No devices match.",
       u_now: "Now", u_none: "No internet access", limit: "Limit", no_limit: "No limit", block: "Block", unblock: "Unblock", this_pc: "This computer",
+      g_title: "Guest network", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
       wifi_title: "WiFi networks", w_24: "2.4 GHz name", w_5: "5 GHz name", w_sec: "Security", w_pc: "Connected devices",
       wifi_note: "Changing the WiFi name or password and restarting the router are not in this version yet. Use the router page for those.",
       recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left", e_start: "Connected to the router",
@@ -292,6 +303,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "এখন সবচেয়ে দ্রুত", none_active: "এখন কোনো ডিভাইস ইন্টারনেট ব্যবহার করছে না।",
       search_ph: "নাম, আইপি বা ম্যাক খুঁজুন", f_all: "সব", f_online: "অনলাইন", f_blocked: "ব্লক করা", no_match: "কোনো ডিভাইস মেলেনি।",
       u_now: "এখন", u_none: "ইন্টারনেট বন্ধ", limit: "সীমা", no_limit: "সীমা নেই", block: "ব্লক", unblock: "আনব্লক", this_pc: "এই কম্পিউটার",
+      g_title: "গেস্ট নেটওয়ার্ক", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
       wifi_title: "ওয়াইফাই নেটওয়ার্ক", w_24: "২.৪ গিগাহার্টজের নাম", w_5: "৫ গিগাহার্টজের নাম", w_sec: "নিরাপত্তা", w_pc: "যুক্ত ডিভাইস",
       wifi_note: "এই অ্যাপ থেকে ওয়াইফাইয়ের নাম বা পাসওয়ার্ড বদলানো এখনো তৈরি হয়নি। সেজন্য রাউটারের পেজ ব্যবহার করুন।",
       recent: "সাম্প্রতিক ঘটনা", e_block: "{n} ব্লক করা হয়েছে", e_unblock: "{n} আনব্লক করা হয়েছে", e_limit: "{n}-এর সীমা: {l}", e_in: "{n} যুক্ত হয়েছে", e_out: "{n} বেরিয়ে গেছে", e_start: "রাউটারের সাথে যুক্ত হয়েছে",
@@ -431,6 +443,11 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     var w = state.wifi || {};
     $("#w-24").textContent = (w.ssid24 || "").trim(); $("#w-5").textContent = (w.ssid5 || "").trim(); $("#w-sec").textContent = w.security || "";
     $("#w-pc").textContent = num(state.devices.filter(function (d) { return d.online; }).length);
+    var g = w.guest || {};
+    $("#g-state").textContent = g.on24 || g.on5 ? t("g_on") : t("g_off");
+    $("#g-24").textContent = (g.ssid24 || "").trim(); $("#g-5").textContent = (g.ssid5 || "").trim();
+    $("#g-sec").textContent = g.open ? t("g_open") : t("g_pw");
+    $("#g-speed").textContent = g.speedKBps > 0 && g.speedKBps < 38528 ? num(g.speedKBps * 8 / 1000, 2) + " Mbps" : t("g_nolim");
   }
   function renderActivity() {
     $("#activity").innerHTML = events.slice(0, 40).map(function (e) { return "<li><time>" + e.time + "</time><span>" + esc(t(e.key, e.v)) + "</span></li>"; }).join("");
