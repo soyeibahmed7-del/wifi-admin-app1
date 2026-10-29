@@ -106,7 +106,8 @@
         }
       });
       var w = q.wifiBasicCfg || {}, g = q.wifiGuest || {};
-      return { me: q.localhost, devices: devices, wifi: { ssid24: w.wifiSSID, ssid5: w.wifiSSID_5G, security: w.wifiSecurityMode, guest: { on24: g.guestEn === "true", on5: g.guestEn_5G === "true", ssid24: g.guestSSID, ssid5: g.guestSSID_5G, open: g.guestSecurityMode === "NONE", speedKBps: +g.guestShareSpeed || 0, time: g.guestValidTime } } };
+      var guests = (q.guestList || []).map(function (x) { return { mac: String(x.qosListMac).toLowerCase(), name: x.qosListHostname || "Unknown", ip: x.qosListIP, downKBps: +x.qosListDownSpeed || 0, upKBps: +x.qosListUpSpeed || 0, band: /5G/.test(x.qosListAccessType || "") ? "5G" : "2.4G", seconds: +x.qoslistConnetTime || 0 }; });
+      return { me: q.localhost, devices: devices, guests: guests, wifi: { ssid24: w.wifiSSID, ssid5: w.wifiSSID_5G, security: w.wifiSecurityMode, guest: { on24: g.guestEn === "true", on5: g.guestEn_5G === "true", ssid24: g.guestSSID, ssid5: g.guestSSID_5G, open: g.guestSecurityMode === "NONE", speedKBps: +g.guestShareSpeed || 0, time: g.guestValidTime } } };
     });
   };
 
