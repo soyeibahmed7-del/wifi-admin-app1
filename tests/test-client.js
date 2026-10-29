@@ -17,7 +17,7 @@ const state = {
     { mac: "aa:b3:7d:a1:46:ee", host: "Unknown", remark: "Asma", ip: "192.168.1.199", down: "40.00", up: "5.00", lim: "38528.00" },
   ],
   deny: [],
-  lastSetQos: null,
+  lastSetQos: null, wanIp: "192.168.0.101", wanLink: "100", net: "true",
   nat: { mode: "deny", list: [{ hostname: "SOYEIB", remark: "Laptop", mac: "fc:01:7c:a1:0b:f7" }], lastForm: null },
 };
 function getQos() {
@@ -48,6 +48,9 @@ const server = http.createServer((req, res) => {
       state.online = onl.map((r) => Object.assign(find(r[2]), { lim: (+r[3]).toFixed(2) }));
       state.deny = blk.map((r) => find(r[2]));
       res.writeHead(200); return res.end(enc('{"errCode":0}'));
+    }
+    if (req.url.startsWith("/goform/getStatus")) {
+      res.writeHead(200); return res.end(enc(JSON.stringify({ internetStatus: { wanConnectStatus: "13102060" }, systemInfo: { wanType: "dhcp", statusWanIP: state.wanIp, statusWanGaterway: "192.168.0.1", statusWanDns1: "192.168.0.1", wanConnectTime: "3171" }, wanAdvCfg: { wanSpeedCurrent: state.wanLink }, sysTime: { internetState: state.net } })));
     }
     if (req.url.startsWith("/goform/getNAT")) {
       res.writeHead(200); return res.end(enc(JSON.stringify({ staticIPList: [], IPTV: { IPTVEn: "false", VLANID: [] }, portList: [],
@@ -126,6 +129,11 @@ server.listen(0, async () => {
     await rc.setFilter("deny", []);
     f = await rc.getFilter(); assert.strictEqual(f.mode, "deny"); assert.strictEqual(f.list.length, 0);
     console.log("whitelist/blacklist: ok (own phone protected, other settings kept)");
+    let i = await rc.internet(); assert.strictEqual(i.state, "ok"); assert.strictEqual(i.ip, "192.168.0.101");
+    state.net = "false"; assert.strictEqual((await rc.internet()).state, "no_internet");
+    state.wanIp = "0.0.0.0"; assert.strictEqual((await rc.internet()).state, "no_ip");
+    state.wanLink = "0"; assert.strictEqual((await rc.internet()).state, "unplugged");
+    console.log("internet status states: ok");
     console.log("ALL TESTS PASSED");
   } catch (e) { console.error("FAILED:", e); process.exitCode = 1; }
   server.close();

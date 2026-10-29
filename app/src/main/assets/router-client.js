@@ -111,6 +111,18 @@
     });
   };
 
+  // Internet / WAN status, from GET /goform/getStatus (the router's own home page polls this).
+  // state: "ok", "unplugged" (no WAN link), "no_ip" (cable ok but no address from the ISP) or "no_internet" (address but router says offline).
+  // The "unplugged" rule assumes wanSpeedCurrent is 0 with no cable; "code" is the router's raw wanConnectStatus so unknown values can be learned.
+  P.internet = function () {
+    return this._getJson("/goform/getStatus?random=" + Math.random() + "&modules=" + encodeURIComponent("internetStatus,systemInfo,wanAdvCfg,sysTime")).then(function (q) {
+      var si = q.systemInfo || {}, adv = q.wanAdvCfg || {}, is = q.internetStatus || {}, st = q.sysTime || {};
+      var ip = si.statusWanIP || "", link = +adv.wanSpeedCurrent > 0, hasIp = !!ip && ip !== "0.0.0.0", net = st.internetState === "true";
+      var state = !link ? "unplugged" : !hasIp ? "no_ip" : !net ? "no_internet" : "ok";
+      return { state: state, ip: hasIp ? ip : "", gateway: si.statusWanGaterway || "", dns: si.statusWanDns1 || "", type: si.wanType || "", linkMbps: +adv.wanSpeedCurrent || 0, seconds: +si.wanConnectTime || 0, code: String(is.wanConnectStatus || "") };
+    });
+  };
+
   // Rows are "hostname<TAB>remark<TAB>MAC<TAB>down<TAB>up<TAB>allowed". Several rows are joined with a newline.
   function row(d, allowed, zero) {
     return [d.hostname || "Unknown", d.name || "", d.mac.toUpperCase(), zero ? 0 : (d.limitDownKBps || 0), zero ? 0 : (d.limitUpKBps || 0), allowed].join("\t");
