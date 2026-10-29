@@ -68,6 +68,12 @@ h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.3; margin
 .net-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--muted); flex: none; }
 .net.ok .net-dot { background: var(--good); } .net.bad .net-dot { background: var(--bad); } .net.bad { border-color: var(--bad); }
 .net .hint { color: var(--muted); font-size: 14px; margin: 6px 0 10px; }
+.pill.rt { background: var(--accent-soft); color: var(--fg); }
+.rt-select { width: 100%; min-height: 44px; margin: 6px 0 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--fg); padding: 0 10px; font: inherit; }
+#rbar { margin-bottom: 12px; }
+.rt-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); flex-wrap: wrap; }
+.rt-row .grow { flex: 1; min-width: 160px; overflow-wrap: anywhere; }
+.rt-row small { display: block; color: var(--muted); font-size: 12px; }
 .acl h2 { margin-bottom: 4px; }
 .acl .hint { color: var(--muted); font-size: 14px; margin: 6px 0 12px; }
 .acl-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); min-height: 48px; }
@@ -149,6 +155,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
         <span data-i18n="brand"></span>
       </div>
       <div><h1 data-i18n="setup_title"></h1><p data-i18n="setup_sub"></p></div>
+      <div class="field"><label for="s-name" data-i18n="s_name"></label><input id="s-name" type="text" value="Router 1"></div>
       <div class="field"><label for="s-url" data-i18n="s_url"></label><input id="s-url" type="text" value="http://192.168.1.1" inputmode="url" autocapitalize="off"></div>
       <div class="field"><label for="s-rpw" data-i18n="s_rpw"></label><input id="s-rpw" type="password"></div>
       <div class="field"><label for="s-apw" data-i18n="s_apw"></label><input id="s-apw" type="password"></div>
@@ -197,14 +204,11 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
         <button class="btn" id="open-router" type="button" aria-label="Router page" data-i18n-title="router_page" title="Router page"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20"/></svg></button>
       </div>
     </div>
+    <div class="chips" id="rbar" hidden></div>
     <div class="notice err" id="err" hidden></div>
 
     <section class="view" id="view-overview"><div class="main">
-      <div class="panel net" id="net" hidden>
-        <div class="net-head"><span class="net-dot" id="net-dot"></span><b id="net-title"></b></div>
-        <p class="hint" id="net-msg"></p>
-        <dl class="kv" id="net-kv"></dl>
-      </div>
+      <div id="nets"></div>
       <div class="tiles">
         <div class="tile tap" data-go="online" role="link" tabindex="0"><div class="k" data-i18n="t_online"></div><div class="v" id="t-online">0</div></div>
         <div class="tile tap" data-go="blocked" role="link" tabindex="0"><div class="k" data-i18n="t_blocked"></div><div class="v" id="t-blocked">0</div></div>
@@ -215,6 +219,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     <section class="view" id="view-devices" hidden><div class="main">
       <div class="panel acl">
         <h2 data-i18n="acl_title"></h2>
+        <select id="acl-rt" class="rt-select" hidden></select>
         <div class="chips" id="acl-mode">
           <button class="chip" type="button" data-m="deny" aria-pressed="true" data-i18n="acl_black"></button>
           <button class="chip" type="button" data-m="pass" aria-pressed="false" data-i18n="acl_white"></button>
@@ -235,27 +240,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     </div></section>
 
     <section class="view" id="view-wifi" hidden><div class="main">
-      <div class="panel">
-        <h2 data-i18n="wifi_title"></h2>
-        <dl class="kv">
-          <dt data-i18n="w_24"></dt><dd id="w-24"></dd>
-          <dt data-i18n="w_5"></dt><dd id="w-5"></dd>
-          <dt data-i18n="w_sec"></dt><dd id="w-sec"></dd>
-          <dt data-i18n="w_pc"></dt><dd id="w-pc"></dd>
-        </dl>
-      </div>
-      <div class="panel">
-        <h2 data-i18n="g_title"></h2>
-        <dl class="kv">
-          <dt data-i18n="g_state"></dt><dd id="g-state"></dd>
-          <dt data-i18n="w_24"></dt><dd id="g-24"></dd>
-          <dt data-i18n="w_5"></dt><dd id="g-5"></dd>
-          <dt data-i18n="w_sec"></dt><dd id="g-sec"></dd>
-          <dt data-i18n="g_speed"></dt><dd id="g-speed"></dd>
-        </dl>
-        <h2 style="margin-top:16px" data-i18n="g_devs"></h2>
-        <div id="g-devs"></div>
-      </div>
+      <div id="wifi-body"></div>
       <div class="notice" data-i18n="wifi_note"></div>
     </div></section>
 
@@ -268,8 +253,17 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
         </div>
       </div>
       <div class="panel">
-        <h2 data-i18n="set_router"></h2>
-        <button class="btn" id="open-router2" type="button" data-i18n="router_page"></button>
+        <h2 data-i18n="set_routers"></h2>
+        <div id="router-list"></div>
+        <form id="add-form" autocomplete="off">
+          <h2 style="margin-top:16px" data-i18n="add_router"></h2>
+          <div class="field"><label for="a-name" data-i18n="s_name"></label><input id="a-name" type="text"></div>
+          <div class="field"><label for="a-url" data-i18n="s_url"></label><input id="a-url" type="text" value="http://192.168.0.1" inputmode="url" autocapitalize="off"></div>
+          <div class="field"><label for="a-type" data-i18n="a_type"></label><select id="a-type" class="rt-select"><option value="f3">Tenda F3</option><option value="ac5">Tenda AC5</option></select></div>
+          <div class="field"><label for="a-pw" data-i18n="s_rpw"></label><input id="a-pw" type="password"></div>
+          <div class="login-err" id="add-err" role="alert"></div>
+          <button class="btn primary" type="submit" id="add-btn" data-i18n="add_btn"></button>
+        </form>
       </div>
       <div class="panel">
         <h2 data-i18n="app_settings"></h2>
@@ -302,10 +296,10 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "Fastest right now", none_active: "No device is using the internet right now.",
       search_ph: "Search name, IP or MAC", f_all: "All", f_online: "Online", f_blocked: "Blocked", no_match: "No devices match.",
       u_now: "Now", u_none: "No internet access", limit: "Limit", no_limit: "No limit", block: "Block", unblock: "Unblock", this_pc: "This computer",
-      net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
+      set_routers: "Routers", a_type: "Router model", r_readonly: "View only", add_router: "Add another router", s_name: "Router name", add_btn: "Add router", r_open: "Open page", r_remove: "Remove", r_confirm: "Tap again to remove", r_ok: "Connected", r_all: "All routers", r_added: "Router added.", r_last: "At least one router must stay.", r_dup: "That router is already added.", e_start: "Connected to {r}", net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
       wifi_title: "WiFi networks", w_24: "2.4 GHz name", w_5: "5 GHz name", w_sec: "Security", w_pc: "Connected devices",
       wifi_note: "Changing the WiFi name or password and restarting the router are not in this version yet. Use the router page for those.",
-      recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left", e_start: "Connected to the router",
+      recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left",
       s_dummy: "",
       acl_title: "Access list", acl_black: "Blacklist", acl_white: "Whitelist", acl_hint_deny: "Blacklist: ticked devices are kept out of the WiFi. Everyone else can connect.", acl_hint_pass: "Whitelist: only ticked devices can use the WiFi. Everyone else is kept out.", acl_save: "Save", acl_confirm: "Tap again to apply", acl_you: "This phone", acl_saved: "Saved.", acl_loading: "Loading…", acl_empty: "No devices yet.", acl_off: "Not saved yet",
       setup_title: "Set up", setup_sub: "Connect to your router once. Stay on your home WiFi.", s_url: "Router address", s_rpw: "Router admin password", s_apw: "New app password (6+ characters)", s_apw2: "Repeat app password", s_btn: "Save and connect", s_short: "App password needs at least 6 characters.", s_match: "The two app passwords do not match.", s_checking: "Connecting…", s_rbad: "The router did not accept that password.", app_settings: "App settings", app_settings_btn: "Change router or app password", app_settings_confirm: "Tap again to erase saved settings",
@@ -322,10 +316,10 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "এখন সবচেয়ে দ্রুত", none_active: "এখন কোনো ডিভাইস ইন্টারনেট ব্যবহার করছে না।",
       search_ph: "নাম, আইপি বা ম্যাক খুঁজুন", f_all: "সব", f_online: "অনলাইন", f_blocked: "ব্লক করা", no_match: "কোনো ডিভাইস মেলেনি।",
       u_now: "এখন", u_none: "ইন্টারনেট বন্ধ", limit: "সীমা", no_limit: "সীমা নেই", block: "ব্লক", unblock: "আনব্লক", this_pc: "এই কম্পিউটার",
-      net_connecting: "যুক্ত হচ্ছে…", nm_connecting: "রাউটার ISP-র সাথে যুক্ত হচ্ছে। এক মিনিট অপেক্ষা করুন।", net_ip_conflict: "IP সংঘর্ষ", nm_ip_conflict: "রাউটারের LAN ঠিকানা ISP নেটওয়ার্কের সাথে মিলে যাচ্ছে। রাউটারের পেজে LAN IP বদলান।", net_auth_failed: "ISP লগইন ব্যর্থ", nm_auth_failed: "ISP-র (PPPoE) ইউজারনেম বা পাসওয়ার্ড গ্রহণ হয়নি। রাউটারের পেজে মিলিয়ে দেখুন।", net_ok: "ইন্টারনেট চলছে", net_unplugged: "WAN ক্যাবল লাগানো নেই", net_no_ip: "WAN ঠিকানা নেই (ক্যাবল খোলা বা ISP-র সমস্যা)", net_no_internet: "ইন্টারনেট সংযোগ নেই", net_unknown: "ইন্টারনেটের অবস্থা জানা যায়নি", nm_ok: "রাউটার অনলাইনে আছে।", nm_unplugged: "রাউটারের WAN (ইন্টারনেট) পোর্টের ক্যাবল খুলে গেছে বা ঢিলা। ISP-র ক্যাবল দেখুন।", nm_no_ip: "রাউটারের ইন্টারনেট ঠিকানা নেই। হয় WAN ক্যাবল খোলা, নয়তো ক্যাবল লাগানো আছে কিন্তু ISP ঠিকানা দিচ্ছে না। আগে ক্যাবল দেখুন, তারপর ISP-র ডিভাইস রিস্টার্ট করুন বা ISP-কে ফোন করুন।", nm_no_internet: "রাউটারে সংযোগ আছে কিন্তু ইন্টারনেট নেই। ISP-র সমস্যা হতে পারে।", n_ip: "WAN ঠিকানা", n_gw: "গেটওয়ে", n_type: "সংযোগের ধরন", n_up: "যুক্ত আছে", n_link: "লিংকের গতি", n_code: "রাউটার কোড", e_net: "ইন্টারনেট: {s}", g_title: "গেস্ট নেটওয়ার্ক", g_devs: "গেস্ট ডিভাইস", g_none: "কোনো গেস্ট ডিভাইস যুক্ত নেই।", g_for: "যুক্ত আছে", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
+      set_routers: "রাউটারসমূহ", a_type: "রাউটারের মডেল", r_readonly: "শুধু দেখা যায়", add_router: "আরেকটি রাউটার যোগ করুন", s_name: "রাউটারের নাম", add_btn: "রাউটার যোগ করুন", r_open: "পেজ খুলুন", r_remove: "সরান", r_confirm: "সরাতে আবার চাপুন", r_ok: "যুক্ত", r_all: "সব রাউটার", r_added: "রাউটার যোগ হয়েছে।", r_last: "কমপক্ষে একটি রাউটার থাকতেই হবে।", r_dup: "এই রাউটার আগেই যোগ করা আছে।", e_start: "{r}-এর সাথে যুক্ত হয়েছে", net_connecting: "যুক্ত হচ্ছে…", nm_connecting: "রাউটার ISP-র সাথে যুক্ত হচ্ছে। এক মিনিট অপেক্ষা করুন।", net_ip_conflict: "IP সংঘর্ষ", nm_ip_conflict: "রাউটারের LAN ঠিকানা ISP নেটওয়ার্কের সাথে মিলে যাচ্ছে। রাউটারের পেজে LAN IP বদলান।", net_auth_failed: "ISP লগইন ব্যর্থ", nm_auth_failed: "ISP-র (PPPoE) ইউজারনেম বা পাসওয়ার্ড গ্রহণ হয়নি। রাউটারের পেজে মিলিয়ে দেখুন।", net_ok: "ইন্টারনেট চলছে", net_unplugged: "WAN ক্যাবল লাগানো নেই", net_no_ip: "WAN ঠিকানা নেই (ক্যাবল খোলা বা ISP-র সমস্যা)", net_no_internet: "ইন্টারনেট সংযোগ নেই", net_unknown: "ইন্টারনেটের অবস্থা জানা যায়নি", nm_ok: "রাউটার অনলাইনে আছে।", nm_unplugged: "রাউটারের WAN (ইন্টারনেট) পোর্টের ক্যাবল খুলে গেছে বা ঢিলা। ISP-র ক্যাবল দেখুন।", nm_no_ip: "রাউটারের ইন্টারনেট ঠিকানা নেই। হয় WAN ক্যাবল খোলা, নয়তো ক্যাবল লাগানো আছে কিন্তু ISP ঠিকানা দিচ্ছে না। আগে ক্যাবল দেখুন, তারপর ISP-র ডিভাইস রিস্টার্ট করুন বা ISP-কে ফোন করুন।", nm_no_internet: "রাউটারে সংযোগ আছে কিন্তু ইন্টারনেট নেই। ISP-র সমস্যা হতে পারে।", n_ip: "WAN ঠিকানা", n_gw: "গেটওয়ে", n_type: "সংযোগের ধরন", n_up: "যুক্ত আছে", n_link: "লিংকের গতি", n_code: "রাউটার কোড", e_net: "ইন্টারনেট: {s}", g_title: "গেস্ট নেটওয়ার্ক", g_devs: "গেস্ট ডিভাইস", g_none: "কোনো গেস্ট ডিভাইস যুক্ত নেই।", g_for: "যুক্ত আছে", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
       wifi_title: "ওয়াইফাই নেটওয়ার্ক", w_24: "২.৪ গিগাহার্টজের নাম", w_5: "৫ গিগাহার্টজের নাম", w_sec: "নিরাপত্তা", w_pc: "যুক্ত ডিভাইস",
       wifi_note: "এই অ্যাপ থেকে ওয়াইফাইয়ের নাম বা পাসওয়ার্ড বদলানো এখনো তৈরি হয়নি। সেজন্য রাউটারের পেজ ব্যবহার করুন।",
-      recent: "সাম্প্রতিক ঘটনা", e_block: "{n} ব্লক করা হয়েছে", e_unblock: "{n} আনব্লক করা হয়েছে", e_limit: "{n}-এর সীমা: {l}", e_in: "{n} যুক্ত হয়েছে", e_out: "{n} বেরিয়ে গেছে", e_start: "রাউটারের সাথে যুক্ত হয়েছে",
+      recent: "সাম্প্রতিক ঘটনা", e_block: "{n} ব্লক করা হয়েছে", e_unblock: "{n} আনব্লক করা হয়েছে", e_limit: "{n}-এর সীমা: {l}", e_in: "{n} যুক্ত হয়েছে", e_out: "{n} বেরিয়ে গেছে",
       s_dummy: "",
       acl_title: "অ্যাক্সেস তালিকা", acl_black: "ব্ল্যাকলিস্ট", acl_white: "হোয়াইটলিস্ট", acl_hint_deny: "ব্ল্যাকলিস্ট: টিক দেওয়া ডিভাইস ওয়াইফাই ব্যবহার করতে পারবে না। বাকি সবাই পারবে।", acl_hint_pass: "হোয়াইটলিস্ট: শুধু টিক দেওয়া ডিভাইস ওয়াইফাই ব্যবহার করতে পারবে। বাকি সবাই আটকে যাবে।", acl_save: "সেভ করুন", acl_confirm: "প্রয়োগ করতে আবার চাপুন", acl_you: "এই ফোন", acl_saved: "সেভ হয়েছে।", acl_loading: "লোড হচ্ছে…", acl_empty: "এখনো কোনো ডিভাইস নেই।", acl_off: "এখনো সেভ হয়নি",
       setup_title: "সেটআপ", setup_sub: "একবার রাউটারের সাথে যুক্ত করুন। বাসার ওয়াইফাইতে থাকুন।", s_url: "রাউটারের ঠিকানা", s_rpw: "রাউটারের অ্যাডমিন পাসওয়ার্ড", s_apw: "অ্যাপের নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)", s_apw2: "অ্যাপের পাসওয়ার্ড আবার দিন", s_btn: "সেভ করে যুক্ত করুন", s_short: "অ্যাপের পাসওয়ার্ডে কমপক্ষে ৬টি অক্ষর লাগবে।", s_match: "দুটি পাসওয়ার্ড মেলেনি।", s_checking: "যুক্ত হচ্ছে…", s_rbad: "রাউটার ওই পাসওয়ার্ড গ্রহণ করেনি।", app_settings: "অ্যাপের সেটিংস", app_settings_btn: "রাউটার বা অ্যাপের পাসওয়ার্ড বদলান", app_settings_confirm: "সেভ করা তথ্য মুছতে আবার চাপুন",
@@ -342,13 +336,14 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   var UNLIMITED = 38528, LIMITS = [0, 1, 2, 5, 10]; // Mbps; the router keeps limits in KB/s
   var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>';
   var PC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 20h20"/></svg>';
-  var acl = { mode: "deny", sel: {}, saved: null, me: "", loaded: false, busy: false };
-  var state = { devices: [], guests: [], me: null, wifi: {} }, events = [], filter = "all", query = "", route = "overview", user = null, pending = {}, failing = false;
+  var acl = { mode: "deny", sel: {}, saved: null, me: "", loaded: false, busy: false, rid: "" };
+  var state = { devices: [], guests: [] }, events = [], filter = "all", query = "", route = "overview", user = null, pending = {}, failing = false;
   var series = { d: [], u: [] }, MAXPTS = 40, timer = null, prevMap = null, ttimer;
 
   function toast(m) { var el = $("#toast"); el.textContent = m; el.hidden = false; clearTimeout(ttimer); ttimer = setTimeout(function () { el.hidden = true; }, 2800); }
-  // ---- no server: the app talks to the router itself through the Android bridge (Native) ----
-  var pendingCalls = {}, seq = 0, unlocked = false, rc = null, cfg = null, USER = { name: "admin", role: "admin" };
+  // ---- no server: the app talks to the routers itself through the Android bridge (Native) ----
+  var pendingCalls = {}, seq = 0, unlocked = false, cfg = null, USER = { name: "admin", role: "admin" };
+  var R = {}, sel = "all"; // R: one entry per router (client + latest data); sel: "all" or a router id
   function b64d(s) { if (!s) return ""; var bin = atob(s), bytes = new Uint8Array(bin.length); for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); return new TextDecoder("utf-8").decode(bytes); }
   function b64e(s) { return btoa(unescape(encodeURIComponent(s))); }
   window.NativeDone = function (id, status, loc, cookies, body) { var p = pendingCalls[id]; if (!p) return; delete pendingCalls[id]; p.ok({ status: status, location: b64d(loc), cookies: b64d(cookies).split("\n").filter(Boolean), text: b64d(body) }); };
@@ -365,23 +360,42 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     aes: function (enc, s) { return Native.aes(enc, s); },
     b64: b64e
   };
-  function loadCfg() { try { return JSON.parse(localStorage.getItem("wifi-cfg") || "null"); } catch (e) { return null; } }
+  function loadCfg() {
+    try {
+      var c = JSON.parse(localStorage.getItem("wifi-cfg") || "null");
+      if (c && !c.routers && c.url) { c.routers = [{ id: "r1", name: "Router 1", url: c.url, rpw: c.rpw }]; delete c.url; delete c.rpw; localStorage.setItem("wifi-cfg", JSON.stringify(c)); }
+      return c;
+    } catch (e) { return null; }
+  }
+  function saveCfg() { try { localStorage.setItem("wifi-cfg", JSON.stringify(cfg)); } catch (e) {} }
+  function routers() { return (cfg && cfg.routers) || []; }
+  function multi() { return routers().length > 1; }
+  function aclRouters() { return routers().filter(function (r) { return r.type !== "f3"; }); }
+  function aclDefault() { var a = aclRouters(), c = curId(); return a.some(function (r) { return r.id === c; }) ? c : (a[0] && a[0].id) || ""; }
+  function curId() { return sel !== "all" && R[sel] ? sel : (routers()[0] && routers()[0].id); }
+  function inSel(x) { return sel === "all" || x.rid === sel; }
+  function buildClients() {
+    var nr = {};
+    routers().forEach(function (r) {
+      var o = R[r.id] || { devices: [], guests: [], wifi: {}, me: null, net: null, prevMap: null, prevNet: null, error: "" };
+      o.id = r.id; o.name = r.name; o.url = r.url; o.rc = new RouterClient({ url: r.url, password: r.rpw, native: nativeApi, type: r.type }); o.type = r.type || "ac5"; nr[r.id] = o;
+    });
+    R = nr; if (sel !== "all" && !R[sel]) sel = "all";
+  }
   function e401(m) { var e = new Error(m || "Sign in first"); e.status = 401; return e; }
   function api(path, body) {
     return Promise.resolve().then(function () {
-      if (path === "/api/me") { if (!unlocked) throw e401(); return USER; }
       if (path === "/api/login") {
         if (!cfg || Native.sha256(cfg.salt + (body.password || "")) !== cfg.hash) throw e401("Wrong password");
-        unlocked = true; rc = new RouterClient({ url: cfg.url, password: cfg.rpw, native: nativeApi }); return USER;
+        unlocked = true; return USER;
       }
-      if (path === "/api/logout") { unlocked = false; rc = null; return {}; }
-      if (!unlocked || !rc) throw e401();
-      if (path === "/api/devices") return rc.snapshot();
-      if (path === "/api/internet") return rc.internet();
-      if (path === "/api/filter") return rc.getFilter();
-      if (path === "/api/filter/set") return rc.setFilter(body.mode, body.macs).then(function () { return { ok: true }; });
-      if (path === "/api/block") return rc.setBlocked(body.mac, !!body.blocked).then(function () { return { ok: true }; });
-      if (path === "/api/limit") return rc.setLimit(body.mac, +body.kbps || 0).then(function () { return { ok: true }; });
+      if (path === "/api/logout") { unlocked = false; R = {}; return {}; }
+      if (!unlocked) throw e401();
+      var r = R[(body && body.rid) || curId()]; if (!r) throw new Error("No router");
+      if (path === "/api/filter") return r.rc.getFilter();
+      if (path === "/api/filter/set") return r.rc.setFilter(body.mode, body.macs).then(function () { return { ok: true }; });
+      if (path === "/api/block") return r.rc.setBlocked(body.mac, !!body.blocked).then(function () { return { ok: true }; });
+      if (path === "/api/limit") return r.rc.setLimit(body.mac, +body.kbps || 0).then(function () { return { ok: true }; });
       throw new Error("Not found");
     });
   }
@@ -389,7 +403,8 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function log(key, v) { events.unshift({ time: nowStr(), key: key, v: v }); renderActivity(); }
   function mbps(kbps) { return kbps * 8 / 1000; }
   function limitMbps(d) { return d.limitDownKBps >= UNLIMITED || d.limitDownKBps <= 0 ? 0 : Math.round(d.limitDownKBps * 8 / 1000); }
-  function isMe(d) { return state.me && state.me.localhostMAC && state.me.localhostMAC.toLowerCase() === d.mac; }
+  function isMe(d) { var r = R[d.rid], m = r && r.me && r.me.localhostMAC; return !!m && m.toLowerCase() === d.mac; }
+  function rtag(x) { return multi() ? ' <span class="pill rt">' + esc(x.rname) + "</span>" : ""; }
 
   function applyStatic() {
     document.documentElement.lang = lang;
@@ -405,16 +420,16 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function renderRoute() {
     VIEWS.forEach(function (k) { $("#view-" + k).hidden = k !== route; var a = document.querySelector('[data-nav="' + k + '"]'); if (k === route) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     $("#page-title").textContent = t("title_" + route);
-    if (route === "devices" && !acl.loaded && !acl.busy) { acl.busy = true; loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
+    if (route === "devices" && !acl.loaded && !acl.busy && unlocked) { acl.busy = true; if (!acl.rid || (sel !== "all" && acl.rid !== sel)) acl.rid = aclDefault(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
   }
   function readHash() { var h = (location.hash || "#overview").slice(1); route = VIEWS.indexOf(h) > -1 ? h : "overview"; renderRoute(); }
   window.addEventListener("hashchange", readHash);
 
   function renderTiles() {
-    var on = state.devices.filter(function (d) { return d.online && !d.blocked; });
-    $("#t-online").textContent = num(on.length);
-    $("#t-blocked").textContent = num(state.devices.filter(function (d) { return d.blocked; }).length);
-    $("#t-guests").textContent = num((state.guests || []).length);
+    var ds = state.devices.filter(inSel);
+    $("#t-online").textContent = num(ds.filter(function (d) { return d.online && !d.blocked; }).length);
+    $("#t-blocked").textContent = num(ds.filter(function (d) { return d.blocked; }).length);
+    $("#t-guests").textContent = num(state.guests.filter(inSel).length);
   }
   function renderTop() {
     var list = state.devices.filter(function (d) { return d.online && d.downKBps + d.upKBps > 0; }).sort(function (a, b) { return b.downKBps + b.upKBps - a.downKBps - a.upKBps; }).slice(0, 5);
@@ -439,44 +454,49 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function renderDevices() {
     var q = query.toLowerCase();
     var list = state.devices.filter(function (d) {
+      if (!inSel(d)) return false;
       if (filter === "online" && !(d.online && !d.blocked)) return false;
       if (filter === "blocked" && !d.blocked) return false;
       return !q || (d.name + " " + d.ip + " " + d.mac).toLowerCase().indexOf(q) > -1;
     });
-    var guests = filter === "blocked" ? [] : (state.guests || []).filter(function (g) { return !q || (g.name + " " + g.ip + " " + g.mac).toLowerCase().indexOf(q) > -1; });
+    var guests = filter === "blocked" ? [] : state.guests.filter(function (g) { return inSel(g) && (!q || (g.name + " " + g.ip + " " + g.mac).toLowerCase().indexOf(q) > -1); });
     var gHtml = guests.map(function (g) {
-      return '<div class="dev"><div class="ico">' + ICON + '</div><div><div class="name">' + esc(g.name) + ' <span class="pill warn">' + t("guest_pill") + '</span> <span class="pill good">' + t("online") + '</span></div><div class="meta">' + esc(g.ip) + " · " + g.mac + " · " + g.band + '</div></div>' +
+      return '<div class="dev"><div class="ico">' + ICON + '</div><div><div class="name">' + esc(g.name) + ' <span class="pill warn">' + t("guest_pill") + '</span> <span class="pill good">' + t("online") + "</span>" + rtag(g) + '</div><div class="meta">' + esc(g.ip) + " · " + g.mac + " · " + g.band + '</div></div>' +
         '<div class="use">' + t("u_now") + " <b>↓ " + num(mbps(g.downKBps), 2) + " ↑ " + num(mbps(g.upKBps), 2) + " Mbps</b></div></div>";
     }).join("");
     if (!list.length && !guests.length) { $("#devices").innerHTML = '<div class="panel">' + t("no_match") + "</div>"; return; }
     $("#devices").innerHTML = list.map(function (d) {
       var st = d.blocked ? '<span class="pill bad">' + t("blocked") + "</span>" : d.online ? '<span class="pill good">' + t("online") + "</span>" : '<span class="pill warn">' + t("offline") + "</span>";
       var me = isMe(d) ? ' <span class="pill warn">' + t("this_pc") + "</span>" : "";
-      var cur = limitMbps(d);
+      var cur = limitMbps(d), key = d.rid + "|" + d.mac;
       var opts = LIMITS.map(function (l) { return '<option value="' + l + '"' + (cur === l ? " selected" : "") + ">" + (l ? num(l) + " Mbps" : t("no_limit")) + "</option>"; }).join("");
       if (LIMITS.indexOf(cur) < 0) opts += '<option value="' + cur + '" selected>' + num(cur) + " Mbps</option>";
       var use = d.blocked ? t("u_none") : d.online ? t("u_now") + " <b>↓ " + num(mbps(d.downKBps), 2) + " ↑ " + num(mbps(d.upKBps), 2) + " Mbps</b>" : "";
-      var busy = pending[d.mac] ? " disabled" : "";
-      var blockBtn = isMe(d) && !d.blocked ? "" : '<button class="btn sm ' + (d.blocked ? "" : "danger") + '" type="button" data-block="' + d.mac + '"' + busy + ">" + (d.blocked ? t("unblock") : t("block")) + "</button>";
+      var busy = pending[key] ? " disabled" : "";
+      var blockBtn = isMe(d) && !d.blocked ? "" : '<button class="btn sm ' + (d.blocked ? "" : "danger") + '" type="button" data-block="' + key + '"' + busy + ">" + (d.blocked ? t("unblock") : t("block")) + "</button>";
+      var acts = d.readonly ? '<div class="acts"><span class="pill warn">' + t("r_readonly") + "</span></div>" :
+        '<div class="acts"><label>' + t("limit") + ' <select data-limit="' + key + '"' + (d.blocked || !d.online || busy ? " disabled" : "") + ">" + opts + "</select></label>" + blockBtn + "</div>";
       return '<div class="dev' + (d.blocked ? " blocked" : "") + '"><div class="ico">' + (isMe(d) ? PC : ICON) + "</div>" +
-        '<div><div class="name">' + esc(d.name) + " " + st + me + '</div><div class="meta">' + (d.ip ? d.ip + " · " : "") + d.mac + (d.band ? " · " + d.band.replace("wifi_", "") : "") + "</div></div>" +
+        '<div><div class="name">' + esc(d.name) + " " + st + me + rtag(d) + '</div><div class="meta">' + (d.ip ? d.ip + " · " : "") + d.mac + (d.band ? " · " + d.band.replace("wifi_", "") : "") + "</div></div>" +
         '<div class="use">' + use + "</div>" +
-        '<div class="acts"><label>' + t("limit") + ' <select data-limit="' + d.mac + '"' + (d.blocked || !d.online || busy ? " disabled" : "") + ">" + opts + "</select></label>" + blockBtn + "</div></div>";
+        acts + "</div>";
     }).join("") + gHtml;
   }
-  function renderWifi() {
-    var w = state.wifi || {};
-    $("#w-24").textContent = (w.ssid24 || "").trim(); $("#w-5").textContent = (w.ssid5 || "").trim(); $("#w-sec").textContent = w.security || "";
-    $("#w-pc").textContent = num(state.devices.filter(function (d) { return d.online; }).length);
-    var g = w.guest || {};
-    $("#g-state").textContent = g.on24 || g.on5 ? t("g_on") : t("g_off");
-    $("#g-24").textContent = (g.ssid24 || "").trim(); $("#g-5").textContent = (g.ssid5 || "").trim();
-    $("#g-sec").textContent = g.open ? t("g_open") : t("g_pw");
-    $("#g-devs").innerHTML = state.guests.length ? state.guests.map(function (d) {
+  function wifiBlock(r) {
+    var w = r.wifi || {}, g = w.guest || {}, kv = function (k, v) { return "<dt>" + esc(t(k)) + "</dt><dd>" + esc(v) + "</dd>"; };
+    var gd = r.guests.length ? r.guests.map(function (d) {
       var m = Math.floor(d.seconds / 60), dur = m >= 60 ? Math.floor(m / 60) + "h " + (m % 60) + "m" : m + "m";
-      return '<div class="acl-row"><span>' + esc(d.name) + ' · ' + d.band + '<small>' + esc(d.ip) + ' · ' + d.mac + '</small><small>↓ ' + num(mbps(d.downKBps), 2) + ' ↑ ' + num(mbps(d.upKBps), 2) + ' Mbps · ' + esc(t("g_for")) + ' ' + dur + '</small></span></div>';
-    }).join("") : '<p class="hint">' + esc(t("g_none")) + '</p>';
-    $("#g-speed").textContent = g.speedKBps > 0 && g.speedKBps < 38528 ? num(g.speedKBps * 8 / 1000, 2) + " Mbps" : t("g_nolim");
+      return '<div class="acl-row"><span>' + esc(d.name) + " · " + d.band + "<small>" + esc(d.ip) + " · " + d.mac + "</small><small>↓ " + num(mbps(d.downKBps), 2) + " ↑ " + num(mbps(d.upKBps), 2) + " Mbps · " + esc(t("g_for")) + " " + dur + "</small></span></div>";
+    }).join("") : '<p class="hint">' + esc(t("g_none")) + "</p>";
+    var has5 = !!(w.ssid5 || "").trim();
+    return '<div class="panel"><h2>' + esc(t("wifi_title")) + (multi() ? " · " + esc(r.name) : "") + "</h2><dl class=\"kv\">" + kv("w_24", (w.ssid24 || "").trim()) + (has5 ? kv("w_5", (w.ssid5 || "").trim()) : "") + kv("w_sec", w.security || "") +
+      kv("w_pc", num(r.devices.filter(function (d) { return d.online; }).length)) + "</dl></div>" +
+      '<div class="panel"><h2>' + esc(t("g_title")) + (multi() ? " · " + esc(r.name) : "") + "</h2><dl class=\"kv\">" + kv("g_state", g.on24 || g.on5 ? t("g_on") : t("g_off")) + kv("w_24", (g.ssid24 || "").trim()) + (has5 ? kv("w_5", (g.ssid5 || "").trim()) : "") +
+      kv("w_sec", g.open ? t("g_open") : t("g_pw")) + kv("g_speed", g.speedKBps > 0 && g.speedKBps < 38528 ? num(g.speedKBps * 8 / 1000, 2) + " Mbps" : t("g_nolim")) + '</dl><h2 style="margin-top:16px">' + esc(t("g_devs")) + "</h2>" + gd + "</div>";
+  }
+  function renderWifi() {
+    var ids = Object.keys(R).filter(function (id) { return sel === "all" || id === sel; });
+    $("#wifi-body").innerHTML = ids.map(function (id) { return wifiBlock(R[id]); }).join("");
   }
   function renderActivity() {
     $("#activity").innerHTML = events.slice(0, 40).map(function (e) { return "<li><time>" + e.time + "</time><span>" + esc(t(e.key, e.v)) + "</span></li>"; }).join("");
@@ -485,54 +505,86 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     var p = $("#conn"); p.className = "pill " + (failing ? "bad" : "good"); p.textContent = failing ? t("reconnecting") : t("live");
     $("#who").textContent = user ? user.name + " (" + user.role + ")" : "";
   }
-  var net = null, prevNet = null;
   function renderNet() {
-    var box = $("#net"); if (!net) { box.hidden = true; return; }
-    box.hidden = false; box.className = "panel net " + (net.state === "ok" ? "ok" : "bad");
-    $("#net-title").textContent = t("net_" + net.state);
-    $("#net-msg").textContent = t("nm_" + net.state);
-    var m = Math.floor(net.seconds / 60), up = m >= 1440 ? Math.floor(m / 1440) + "d " + Math.floor((m % 1440) / 60) + "h" : m >= 60 ? Math.floor(m / 60) + "h " + (m % 60) + "m" : m + "m";
-    var rows = [["n_ip", net.ip || "—"], ["n_gw", net.gateway || "—"], ["n_type", (net.type || "").toUpperCase()], ["n_link", net.linkMbps ? net.linkMbps + " Mbps" : "—"], ["n_up", net.state === "ok" ? up : "—"], ["n_code", net.code || "—"]];
-    $("#net-kv").innerHTML = rows.map(function (r) { return "<dt>" + esc(t(r[0])) + "</dt><dd>" + esc(r[1]) + "</dd>"; }).join("");
+    var ids = Object.keys(R).filter(function (id) { return (sel === "all" || id === sel) && R[id].net; });
+    $("#nets").innerHTML = ids.map(function (id) {
+      var r = R[id], net = r.net, m = Math.floor(net.seconds / 60);
+      var up = m >= 1440 ? Math.floor(m / 1440) + "d " + Math.floor((m % 1440) / 60) + "h" : m >= 60 ? Math.floor(m / 60) + "h " + (m % 60) + "m" : m + "m";
+      var rows = [["n_ip", net.ip || "—"], ["n_gw", net.gateway || "—"], ["n_type", (net.type || "").toUpperCase()], ["n_link", net.linkMbps ? net.linkMbps + " Mbps" : "—"], ["n_up", net.state === "ok" ? up : "—"], ["n_code", net.code || "—"]];
+      return '<div class="panel net ' + (net.state === "ok" ? "ok" : "bad") + '"><div class="net-head"><span class="net-dot"></span><b>' + (multi() ? esc(r.name) + " · " : "") + esc(t("net_" + net.state)) + '</b></div><p class="hint">' + esc(t("nm_" + net.state)) + "</p><dl class=\"kv\">" +
+        rows.map(function (x) { return "<dt>" + esc(t(x[0])) + "</dt><dd>" + esc(x[1]) + "</dd>"; }).join("") + "</dl></div>";
+    }).join("");
   }
-  function pollNet() {
-    return api("/api/internet").then(function (n) {
-      net = n;
-      if (prevNet && prevNet !== n.state) { log("e_net", { s: t("net_" + n.state) }); toast(t("net_" + n.state)); }
-      prevNet = n.state; renderNet();
-    }).catch(function () { net = null; renderNet(); });
+  function renderBar() {
+    var bar = $("#rbar"); bar.hidden = !multi(); if (!multi()) return;
+    var items = [["all", t("r_all")]].concat(routers().map(function (r) { return [r.id, r.name]; }));
+    bar.innerHTML = items.map(function (x) { return '<button class="chip" type="button" data-r="' + esc(x[0]) + '" aria-pressed="' + (sel === x[0] ? "true" : "false") + '">' + esc(x[1]) + "</button>"; }).join("");
+  }
+  function renderRouters() {
+    $("#router-list").innerHTML = routers().map(function (r, i) {
+      var o = R[r.id] || {}, st = o.error ? '<span class="pill bad">' + esc(o.error) + "</span>" : '<span class="pill good">' + t("r_ok") + "</span>";
+      return '<div class="rt-row"><div class="grow"><b>' + esc(r.name) + "</b><small>" + esc(r.url) + "</small>" + st + '</div><button class="btn sm" type="button" data-ropen="' + esc(r.id) + '">' + t("r_open") + '</button>' +
+        (routers().length > 1 ? '<button class="btn sm danger" type="button" data-rdel="' + esc(r.id) + '">' + t("r_remove") + "</button>" : "") + "</div>";
+    }).join("");
   }
   var aclSig = "";
-  function renderAll() { var sg = aclDevices().map(function (d) { return d.mac + d.name; }).join("|"); if (sg !== aclSig) { aclSig = sg; renderAcl(); } renderTiles(); renderDevices(); renderWifi(); renderNet(); renderActivity(); renderStatus(); }
+  function renderAll() {
+    var sg = aclDevices().map(function (d) { return d.mac + d.name; }).join("|") + "|" + routers().length; if (sg !== aclSig) { aclSig = sg; renderAcl(); }
+    renderBar(); renderTiles(); renderDevices(); renderWifi(); renderNet(); renderActivity(); renderStatus(); renderRouters();
+  }
 
-  function poll() {
-    return api("/api/devices").then(function (s) {
-      failing = false; $("#err").hidden = true;
+  function pollOne(r) {
+    var tag = multi() ? " (" + r.name + ")" : "";
+    return r.rc.snapshot().then(function (s) {
+      r.error = "";
       var map = {}; s.devices.forEach(function (d) { map[d.mac] = d; });
-      if (prevMap) {
-        s.devices.forEach(function (d) { var p = prevMap[d.mac]; if ((!p || !p.online) && d.online) log("e_in", { n: d.name }); });
-        Object.keys(prevMap).forEach(function (m) { if (prevMap[m].online && !(map[m] && map[m].online)) log("e_out", { n: prevMap[m].name }); });
-      } else log("e_start", {});
-      prevMap = map; state.devices = s.devices; state.guests = s.guests || []; state.me = s.me; state.wifi = s.wifi;
-      var on = s.devices.filter(function (d) { return d.online && !d.blocked; });
+      if (r.prevMap) {
+        s.devices.forEach(function (d) { var p = r.prevMap[d.mac]; if ((!p || !p.online) && d.online) log("e_in", { n: d.name + tag }); });
+        Object.keys(r.prevMap).forEach(function (m) { if (r.prevMap[m].online && !(map[m] && map[m].online)) log("e_out", { n: r.prevMap[m].name + tag }); });
+      } else log("e_start", { r: r.name });
+      r.prevMap = map; r.devices = s.devices; r.guests = s.guests || []; r.me = s.me; r.wifi = s.wifi;
+      return r.rc.internet().then(function (n) {
+        r.net = n;
+        if (r.prevNet && r.prevNet !== n.state) { var msg = (multi() ? r.name + " – " : "") + t("net_" + n.state); log("e_net", { s: msg }); toast(msg); }
+        r.prevNet = n.state;
+      }, function () { r.net = null; });
+    }).catch(function (e) { r.error = e.message || String(e); });
+  }
+  function poll() {
+    var ids = Object.keys(R);
+    return Promise.all(ids.map(function (id) { return pollOne(R[id]); })).then(function () {
+      state.devices = []; state.guests = [];
+      ids.forEach(function (id) {
+        var r = R[id];
+        r.devices.forEach(function (d) { d.rid = id; d.rname = r.name; state.devices.push(d); });
+        r.guests.forEach(function (g) { g.rid = id; g.rname = r.name; state.guests.push(g); });
+      });
+      var bad = ids.filter(function (id) { return R[id].error; });
+      failing = ids.length > 0 && bad.length === ids.length;
+      $("#err").hidden = !bad.length;
+      $("#err").textContent = bad.map(function (id) { return (multi() ? R[id].name + ": " : "") + R[id].error; }).join(" | ");
       $("#updated").textContent = t("updated") + " " + nowStr();
-      renderAll(); pollNet();
-    }).catch(function (e) {
-      if (e.status === 401) return signedOut();
-      failing = true; $("#err").hidden = false; $("#err").textContent = t("err_prefix") + e.message; renderStatus();
+      renderAll();
     });
   }
-  function start() { acl.loaded = false; acl.busy = false; $("#setup").hidden = true; $("#login").hidden = true; $("#app").hidden = false; readHash(); prevMap = null; prevNet = null; net = null; series = { d: [], u: [] }; poll(); clearInterval(timer); timer = setInterval(poll, 6000); }
-  function signedOut() { clearInterval(timer); user = null; unlocked = false; $("#app").hidden = true; $("#setup").hidden = !!loadCfg(); $("#login").hidden = !loadCfg(); }
+  function start() {
+    acl.loaded = false; acl.busy = false; acl.rid = ""; sel = "all"; R = {}; buildClients();
+    $("#setup").hidden = true; $("#login").hidden = true; $("#app").hidden = false; readHash();
+    poll(); clearInterval(timer); timer = setInterval(poll, 6000);
+  }
+  function signedOut() { clearInterval(timer); user = null; unlocked = false; R = {}; $("#app").hidden = true; $("#setup").hidden = !!loadCfg(); $("#login").hidden = !loadCfg(); }
 
-  // ---- access list (blacklist / whitelist) ----
+  // ---- access list (blacklist / whitelist), one router at a time ----
   function aclDevices() {
-    var seen = {}, out = [];
-    state.devices.forEach(function (d) { seen[d.mac] = 1; out.push({ mac: d.mac, name: d.name }); });
+    var r = R[acl.rid], seen = {}, out = [];
+    if (!r) return out;
+    r.devices.forEach(function (d) { seen[d.mac] = 1; out.push({ mac: d.mac, name: d.name }); });
     if (acl.saved) acl.saved.list.forEach(function (m) { if (!seen[m.mac]) { seen[m.mac] = 1; out.push({ mac: m.mac, name: m.remark || m.hostname }); } });
     return out;
   }
   function renderAcl() {
+    var rs = $("#acl-rt"); rs.hidden = aclRouters().length < 2;
+    if (aclRouters().length > 1) rs.innerHTML = aclRouters().map(function (r) { return '<option value="' + esc(r.id) + '"' + (r.id === acl.rid ? " selected" : "") + ">" + esc(r.name) + "</option>"; }).join("");
     document.querySelectorAll("#acl-mode .chip").forEach(function (c) { c.setAttribute("aria-pressed", c.dataset.m === acl.mode ? "true" : "false"); });
     $("#acl-hint").textContent = t("acl_hint_" + acl.mode);
     $("#acl-save").disabled = acl.busy || !acl.loaded;
@@ -545,10 +597,15 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     }).join("");
   }
   function loadAcl() {
-    return api("/api/filter").then(function (f) {
+    if (!acl.rid) acl.rid = aclDefault();
+    var rid = acl.rid;
+    return api("/api/filter", { rid: rid }).then(function (f) {
+      if (rid !== acl.rid) return;
       acl.saved = f; acl.me = f.me; acl.mode = f.mode; acl.sel = {}; f.list.forEach(function (m) { acl.sel[m.mac] = true; }); acl.loaded = true; renderAcl();
-    }).catch(function (e) { if (e.status === 401) return signedOut(); $("#acl-msg").textContent = e.message; });
+    }).catch(function (e) { $("#acl-msg").textContent = e.message; });
   }
+  function reloadAcl() { acl.loaded = false; acl.saved = null; acl.busy = true; renderAcl(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
+  $("#acl-rt").addEventListener("change", function () { acl.rid = this.value; reloadAcl(); });
   document.querySelectorAll("#acl-mode .chip").forEach(function (c) { c.addEventListener("click", function () { acl.mode = c.dataset.m; renderAcl(); }); });
   $("#acl-list").addEventListener("change", function (e) { var c = e.target.closest("[data-mac]"); if (c) acl.sel[c.dataset.mac] = c.checked; });
   $("#acl-save").addEventListener("click", function () {
@@ -557,24 +614,30 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     b.dataset.armed = ""; b.textContent = t("acl_save");
     var macs = Object.keys(acl.sel).filter(function (m) { return acl.sel[m] && m !== acl.me; });
     acl.busy = true; renderAcl(); $("#acl-msg").textContent = "";
-    api("/api/filter/set", { mode: acl.mode, macs: macs }).then(function () { toast(t("acl_saved")); return loadAcl(); })
+    api("/api/filter/set", { rid: acl.rid, mode: acl.mode, macs: macs }).then(function () { toast(t("acl_saved")); return loadAcl(); })
       .catch(function (er) { toast(er.message); $("#acl-msg").textContent = er.message; }).then(function () { acl.busy = false; renderAcl(); });
   });
 
+  function findDev(key) { var p = key.split("|"); return state.devices.filter(function (x) { return x.rid === p[0] && x.mac === p[1]; })[0]; }
   $("#devices").addEventListener("click", function (e) {
     var b = e.target.closest("[data-block]"); if (!b) return;
-    var mac = b.dataset.block, d = state.devices.filter(function (x) { return x.mac === mac; })[0], want = !d.blocked;
+    var key = b.dataset.block, d = findDev(key), want = !d.blocked;
     if (want && b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = t("confirm_block"); setTimeout(function () { if (b.isConnected) { b.dataset.armed = ""; b.textContent = t("block"); } }, 3500); return; }
-    pending[mac] = true; renderDevices();
-    api("/api/block", { mac: mac, blocked: want }).then(function () { log(want ? "e_block" : "e_unblock", { n: d.name }); toast(t(want ? "x_blocked" : "x_unblocked", { n: d.name })); })
-      .catch(function (er) { toast(er.message); }).then(function () { delete pending[mac]; return poll(); });
+    pending[key] = true; renderDevices();
+    api("/api/block", { rid: d.rid, mac: d.mac, blocked: want }).then(function () { log(want ? "e_block" : "e_unblock", { n: d.name }); toast(t(want ? "x_blocked" : "x_unblocked", { n: d.name })); })
+      .catch(function (er) { toast(er.message); }).then(function () { delete pending[key]; return poll(); });
   });
   $("#devices").addEventListener("change", function (e) {
     var s = e.target.closest("[data-limit]"); if (!s) return;
-    var mac = s.dataset.limit, d = state.devices.filter(function (x) { return x.mac === mac; })[0], m = +s.value;
-    pending[mac] = true; renderDevices();
-    api("/api/limit", { mac: mac, kbps: m ? m * 125 : 0 }).then(function () { var l = m ? num(m) + " Mbps" : t("no_limit"); log("e_limit", { n: d.name, l: l }); toast(t("x_limit", { n: d.name, l: l })); })
-      .catch(function (er) { toast(er.message); }).then(function () { delete pending[mac]; return poll(); });
+    var key = s.dataset.limit, d = findDev(key), m = +s.value;
+    pending[key] = true; renderDevices();
+    api("/api/limit", { rid: d.rid, mac: d.mac, kbps: m ? m * 125 : 0 }).then(function () { var l = m ? num(m) + " Mbps" : t("no_limit"); log("e_limit", { n: d.name, l: l }); toast(t("x_limit", { n: d.name, l: l })); })
+      .catch(function (er) { toast(er.message); }).then(function () { delete pending[key]; return poll(); });
+  });
+  $("#rbar").addEventListener("click", function (e) {
+    var c = e.target.closest("[data-r]"); if (!c) return;
+    sel = c.dataset.r; if (sel !== "all" && acl.rid !== sel && aclRouters().some(function (r) { return r.id === sel; })) { acl.rid = sel; if (route === "devices") reloadAcl(); else acl.loaded = false; }
+    renderAll();
   });
   $("#search").addEventListener("input", function (e) { query = e.target.value; renderDevices(); });
   document.querySelectorAll(".tile.tap").forEach(function (t) {
@@ -593,19 +656,40 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function markLang() { document.querySelectorAll("[data-lang-set]").forEach(function (c) { c.setAttribute("aria-pressed", c.dataset.langSet === lang ? "true" : "false"); }); }
   document.querySelectorAll("[data-lang-set]").forEach(function (c) { c.addEventListener("click", function () { setLang(c.dataset.langSet); }); });
   markLang();
-  function openRouter() {
-    var u = (cfg && cfg.url) || "http://192.168.1.1", ok = false;
+  function openRouter(id) {
+    var r = R[id] || R[curId()], u = (r && r.url) || (routers()[0] && routers()[0].url) || "http://192.168.1.1", ok = false;
     try { ok = Native.openUrl(u); } catch (e) {}
     if (!ok) { try { window.open(u, "_blank"); } catch (e) {} }
   }
-  $("#open-router").addEventListener("click", openRouter); $("#open-router2").addEventListener("click", openRouter);
+  $("#open-router").addEventListener("click", function () { openRouter(); });
+  $("#router-list").addEventListener("click", function (e) {
+    var o = e.target.closest("[data-ropen]"); if (o) { openRouter(o.dataset.ropen); return; }
+    var d = e.target.closest("[data-rdel]"); if (!d) return;
+    if (routers().length <= 1) { toast(t("r_last")); return; }
+    if (d.dataset.armed !== "1") { d.dataset.armed = "1"; d.textContent = t("r_confirm"); setTimeout(function () { if (d.isConnected) { d.dataset.armed = ""; d.textContent = t("r_remove"); } }, 3500); return; }
+    cfg.routers = cfg.routers.filter(function (r) { return r.id !== d.dataset.rdel; }); saveCfg(); delete R[d.dataset.rdel];
+    if (acl.rid === d.dataset.rdel) { acl.rid = ""; acl.loaded = false; }
+    buildClients(); poll();
+  });
+  $("#add-form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var err = $("#add-err"), name = $("#a-name").value.trim() || ("Router " + (routers().length + 1)), url = $("#a-url").value.trim().replace(/\/+$/, ""), pw = $("#a-pw").value;
+    err.textContent = ""; if (!/^https?:\/\//i.test(url)) url = "http://" + url;
+    if (routers().some(function (r) { return r.url.toLowerCase() === url.toLowerCase(); })) { err.textContent = t("r_dup"); return; }
+    $("#add-btn").disabled = true; err.textContent = t("s_checking");
+    var type = $("#a-type").value, test = new RouterClient({ url: url, password: pw, native: nativeApi, type: type });
+    test.snapshot().then(function () {
+      cfg.routers.push({ id: "r" + Date.now().toString(36), name: name, url: url, rpw: pw, type: type }); saveCfg(); buildClients();
+      $("#a-name").value = ""; $("#a-pw").value = ""; err.textContent = ""; toast(t("r_added")); acl.loaded = false; poll();
+    }).catch(function (er) { err.textContent = er.message; }).then(function () { $("#add-btn").disabled = false; });
+  });
   $("#logout").addEventListener("click", function () { api("/api/logout", {}).catch(function () {}).then(signedOut); });
 
   applyStatic();
   function showFirstScreen() { cfg = loadCfg(); $("#setup").hidden = !!cfg; $("#login").hidden = !cfg; $("#app").hidden = true; }
   $("#setup-form").addEventListener("submit", function (e) {
     e.preventDefault();
-    var err = $("#setup-err"), url = $("#s-url").value.trim().replace(/\/+$/, ""), rpw = $("#s-rpw").value, a1 = $("#s-apw").value, a2 = $("#s-apw2").value;
+    var err = $("#setup-err"), rname = $("#s-name").value.trim() || "Router 1", url = $("#s-url").value.trim().replace(/\/+$/, ""), rpw = $("#s-rpw").value, a1 = $("#s-apw").value, a2 = $("#s-apw2").value;
     err.textContent = "";
     if (!/^https?:\/\//i.test(url)) url = "http://" + url;
     if (a1.length < 6) { err.textContent = t("s_short"); return; }
@@ -615,8 +699,8 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     test.login().then(function (ok) {
       if (!ok) throw new Error(t("s_rbad"));
       var salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem("wifi-cfg", JSON.stringify({ url: url, rpw: rpw, salt: salt, hash: Native.sha256(salt + a1) }));
-      cfg = loadCfg(); unlocked = true; rc = test; user = USER;
+      localStorage.setItem("wifi-cfg", JSON.stringify({ routers: [{ id: "r1", name: rname, url: url, rpw: rpw }], salt: salt, hash: Native.sha256(salt + a1) }));
+      cfg = loadCfg(); unlocked = true; user = USER;
       $("#setup").hidden = true; $("#s-rpw").value = $("#s-apw").value = $("#s-apw2").value = ""; err.textContent = "";
       start();
     }).catch(function (er) { err.textContent = er.message; }).then(function () { $("#setup-btn").disabled = false; });
@@ -625,7 +709,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     var b = this;
     if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = t("app_settings_confirm"); setTimeout(function () { b.dataset.armed = ""; b.textContent = t("app_settings_btn"); }, 3500); return; }
     try { localStorage.removeItem("wifi-cfg"); } catch (e) {}
-    unlocked = false; rc = null; clearInterval(timer); showFirstScreen();
+    unlocked = false; R = {}; clearInterval(timer); showFirstScreen();
   });
   showFirstScreen();
 })();

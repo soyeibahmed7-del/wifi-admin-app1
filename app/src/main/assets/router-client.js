@@ -14,6 +14,7 @@
     this.url = String(opts.url || "").replace(/\/+$/, "");
     this.password = opts.password || "";
     this.n = opts.native;
+    this.type = opts.type === "f3" ? "f3" : "ac5"; // "f3" = Tenda F3 (plain-text replies, read-only here)
     this.cookie = "";
   }
   var P = RouterClient.prototype;
@@ -84,7 +85,27 @@
     });
   };
 
+  // Tenda F3 (main router): recorded replies are plain JSON from the same /goform/getQos. Only reading is supported for now.
+  P._snapshotF3 = function () {
+    return this._getJson("/goform/getQos?random=" + Math.random() + "&modules=" + encodeURIComponent("localhost,onlineList,blackList,macFilter")).then(function (q) {
+      var devices = (q.onlineList || []).map(function (d) {
+        return { mac: String(d.qosListMac).toLowerCase(), name: d.qosListRemark || d.qosListHostname || "Unknown", hostname: d.qosListHostname, ip: d.qosListIP,
+          band: d.qosListConnectType === "wires" ? "wired" : "wifi", online: true, blocked: false, readonly: true,
+          downKBps: +d.qosListDownSpeed || 0, upKBps: +d.qosListUpSpeed || 0, limitDownKBps: 0, limitUpKBps: 0, seconds: 0 };
+      });
+      var seen = {}; devices.forEach(function (d) { seen[d.mac] = d; });
+      (q.blackList || []).forEach(function (b) {
+        var mac = String(b.qosListMac || b.mac || "").toLowerCase(); if (!mac) return;
+        if (seen[mac]) seen[mac].blocked = true;
+        else devices.push({ mac: mac, name: b.qosListRemark || b.remark || b.qosListHostname || b.hostname || "Unknown", ip: "", band: "", online: false, blocked: true, readonly: true, downKBps: 0, upKBps: 0, limitDownKBps: 0, limitUpKBps: 0, seconds: 0 });
+      });
+      var mf = q.macFilter || {};
+      return { me: { localhostMAC: "" }, devices: devices, guests: [], wifi: {}, filterMode: mf.curFilterMode === "pass" ? "pass" : "deny" };
+    });
+  };
+
   P.snapshot = function () {
+    if (this.type === "f3") return this._snapshotF3();
     return this._getJson("/goform/getQos?random=" + Math.random() + "&modules=" + encodeURIComponent(MODULES)).then(function (q) {
       var mf = (q.macFilter && q.macFilter.macFilterList) || [];
       var denied = {};
@@ -117,10 +138,10 @@
   //   xx06 connected and online, 0207 IP conflict, 0307 PPPoE user/password rejected. (xx: 01 static, 02 DHCP, 03 PPPoE.)
   // state: ok | unplugged | connecting | no_internet | ip_conflict | auth_failed | no_ip (fallback when the code is not known)
   P.internet = function () {
-    return this._getJson("/goform/getStatus?random=" + Math.random() + "&modules=" + encodeURIComponent("internetStatus,systemInfo,wanAdvCfg,sysTime")).then(function (q) {
+    return this._getJson("/goform/getStatus?random=" + Math.random() + "&modules=" + encodeURIComponent(this.type === "f3" ? "internetStatus,systemInfo,wanAdvCfg" : "internetStatus,systemInfo,wanAdvCfg,sysTime")).then(function (q) {
       var si = q.systemInfo || {}, adv = q.wanAdvCfg || {}, is = q.internetStatus || {}, st = q.sysTime || {};
       var code = String(is.wanConnectStatus || ""), msg = code.slice(3, 7), kind = msg.slice(0, 2), n = msg.slice(2);
-      var ip = si.statusWanIP || "", hasIp = !!ip && ip !== "0.0.0.0", net = st.internetState === "true";
+      var ip = si.statusWanIP || "", hasIp = !!ip && ip !== "0.0.0.0", net = st.internetState !== "false";
       var state;
       if (/^0[1-3](0[1-8])$/.test(msg)) {
         state = { "01": "unplugged", "02": "connecting", "03": "connecting", "04": "connecting", "05": "no_internet", "06": "ok", "07": kind === "03" ? "auth_failed" : "ip_conflict", "08": "no_internet" }[n];
@@ -169,9 +190,11 @@
     var list = (mf.macFilterList || []).map(function (m) { return { mac: String(m.mac).toLowerCase(), hostname: m.hostname || "Unknown", remark: m.remark || "" }; });
     return { mode: mf.curFilterMode === "pass" ? "pass" : "deny", list: list, me: ((n.localhost || {}).localhostMAC || "").toLowerCase(), names: names };
   }
-  P.getFilter = function () { return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
+  var NO_F3 = "Whitelist/blacklist is not supported for the Tenda F3 yet.";
+  P.getFilter = function () { if (this.type === "f3") return Promise.reject(new Error(NO_F3)); return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
   P.setFilter = function (mode, macs) {
     var self = this;
+    if (this.type === "f3") return Promise.reject(new Error(NO_F3));
     if (mode !== "pass" && mode !== "deny") return Promise.reject(new Error("Unknown mode"));
     return this._nat().then(function (n) {
       var v = natView(n), want = [];

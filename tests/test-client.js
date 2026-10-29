@@ -133,6 +133,23 @@ server.listen(0, async () => {
     for (const code in cases) { state.code = code; assert.strictEqual((await rc.internet()).state, cases[code], code); }
     state.code = "99999999"; state.wanIp = "0.0.0.0"; assert.strictEqual((await rc.internet()).state, "no_ip");
     console.log("internet status states: ok");
+    // ---- Tenda F3 (plain JSON, no AES) ----
+    const f3 = http.createServer((req, res) => {
+      res.writeHead(200);
+      if (req.url.startsWith("/goform/getQos")) return res.end(JSON.stringify({ localhost: { localhost: "192.168.0.101" }, onlineList: [
+        { qosListHostname: "Tenda", qosListRemark: "Soyeib ", qosListIP: "192.168.0.101", qosListConnectType: "wires", qosListMac: "80:9f:e4:42:71:69", qosListDownSpeed: "1.00", qosListUpSpeed: "16.00" },
+        { qosListHostname: "Unknown", qosListRemark: "আশরাফ ", qosListIP: "192.168.0.107", qosListConnectType: "wifi", qosListMac: "6A:B3:CB:5A:55:62", qosListDownSpeed: "3754.00", qosListUpSpeed: "45.00" }], blackList: [], macFilter: { curFilterMode: "pass" } }));
+      if (req.url.startsWith("/goform/getStatus")) return res.end(JSON.stringify({ internetStatus: { wanConnectStatus: "13103061" }, systemInfo: { wanType: "pppoe", statusWanIP: "10.15.5.59", wanConnectTime: "84951" }, wanAdvCfg: { wanSpeedCurrent: "100" } }));
+      res.end("{}");
+    });
+    await new Promise((r) => f3.listen(0, r));
+    const r2 = new RouterClient({ url: "http://127.0.0.1:" + f3.address().port, password: "x", native, type: "f3" });
+    const s2 = await r2.snapshot();
+    assert.strictEqual(s2.devices.length, 2); assert.strictEqual(s2.devices[1].name.trim(), "আশরাফ"); assert.ok(s2.devices.every((d) => d.readonly));
+    assert.strictEqual(s2.devices[1].mac, "6a:b3:cb:5a:55:62"); assert.strictEqual(s2.devices[1].downKBps, 3754);
+    const i2 = await r2.internet(); assert.strictEqual(i2.state, "ok"); assert.strictEqual(i2.type, "pppoe");
+    f3.close();
+    console.log("Tenda F3 read-only list + internet status: ok");
     console.log("ALL TESTS PASSED");
   } catch (e) { console.error("FAILED:", e); process.exitCode = 1; }
   server.close();
