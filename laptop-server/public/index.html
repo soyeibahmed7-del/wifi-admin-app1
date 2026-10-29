@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WiFi Admin Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
+<style>
+/* Layout: sign-in card, then left rail on laptop and bottom tab bar on phone. Colors and fonts are tokens, so the whole look changes from this block. */
+:root {
+  --bg: #f2f5f6; --surface: #ffffff; --surface-2: #e8eef0; --line: #d3dde0;
+  --fg: #11262b; --muted: #5a7078; --accent: #0b7a86; --accent-ink: #ffffff; --accent-soft: #d6eef0;
+  --good: #1b8a4b; --good-soft: #d9f1e3; --warn: #a86a00; --warn-soft: #fbecc9; --bad: #c0352b; --bad-soft: #f9dcd9;
+  --font-display: "Sora", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", "Noto Sans Bengali", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "Noto Sans Bengali", ui-monospace, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1a1e; --surface: #132a30; --surface-2: #1b363d; --line: #27444c; --fg: #e4f0f2; --muted: #8fabb2;
+    --accent: #3cc3d1; --accent-ink: #052a30; --accent-soft: #14424a; --good: #52d08a; --good-soft: #14392a;
+    --warn: #f0b650; --warn-soft: #3f2f10; --bad: #ff8a80; --bad-soft: #4a1f1c; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; padding: 16px 16px 88px; }
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+[hidden] { display: none !important; }
+.app { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 24px; }
+.rail { position: sticky; top: 16px; align-self: start; display: flex; flex-direction: column; gap: 20px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 17px; }
+.brand svg { width: 28px; height: 28px; color: var(--accent); flex: none; }
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: var(--muted); text-decoration: none; font-weight: 500; }
+.nav a svg { width: 20px; height: 20px; flex: none; }
+.nav a:hover { background: var(--surface-2); color: var(--fg); }
+.nav a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); }
+.main { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.3; margin: 0; }
+.sub { color: var(--muted); font-size: 13px; margin: 2px 0 0; }
+.top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.pill.good { background: var(--good-soft); color: var(--good); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 14px; cursor: pointer; font-weight: 500; min-height: 40px; }
+.btn:hover { background: var(--surface-2); }
+.btn:disabled { opacity: .55; cursor: default; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.danger { color: var(--bad); border-color: var(--bad); background: transparent; }
+.btn.danger:hover { background: var(--bad-soft); }
+.btn.sm { min-height: 34px; padding: 5px 12px; font-size: 14px; }
+.notice { background: var(--warn-soft); color: var(--warn); border-radius: 8px; padding: 10px 14px; font-size: 13px; }
+.notice.err { background: var(--bad-soft); color: var(--bad); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; }
+.panel h2 { font-family: var(--font-display); font-size: 15px; margin: 0 0 12px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.tile .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
+:root[lang="bn"] .tile .k { letter-spacing: 0; text-transform: none; font-size: 13px; }
+.tile .v { font-family: var(--font-mono); font-size: 26px; font-weight: 500; font-variant-numeric: tabular-nums; margin-top: 4px; }
+.tile .v small { font-size: 13px; color: var(--muted); margin-inline-start: 4px; }
+.two { display: grid; grid-template-columns: minmax(0, 3fr) minmax(0, 2fr); gap: 12px; }
+svg.chart { width: 100%; height: auto; display: block; }
+svg.chart text { fill: var(--muted); font-family: var(--font-mono); font-size: 10px; }
+.legend { display: flex; gap: 16px; font-size: 13px; color: var(--muted); margin-bottom: 8px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-inline-end: 6px; }
+.top-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
+.top-list li { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 14px; }
+.top-list .bar { grid-column: 1 / -1; height: 6px; background: var(--surface-2); border-radius: 3px; overflow: hidden; }
+.top-list .bar span { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; margin: 0; font-size: 14px; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; text-align: end; font-family: var(--font-mono); overflow-wrap: anywhere; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.search { flex: 1 1 200px; min-width: 0; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 12px; min-height: 40px; }
+.chips { display: flex; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 14px; cursor: pointer; font-size: 14px; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.devices { display: flex; flex-direction: column; gap: 10px; }
+.dev { display: grid; grid-template-columns: 44px minmax(0, 1.4fr) minmax(0, 1fr) auto; gap: 8px 14px; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.dev.blocked { opacity: .85; }
+.dev .ico { width: 44px; height: 44px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+.dev.blocked .ico { background: var(--bad-soft); color: var(--bad); }
+.dev .ico svg { width: 24px; height: 24px; }
+.dev .name { font-weight: 600; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dev .meta { font-family: var(--font-mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.dev .use { font-size: 13px; color: var(--muted); }
+.dev .use b { color: var(--fg); font-family: var(--font-mono); font-weight: 500; }
+.dev .acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.dev .acts label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+select, input[type="text"], input[type="password"] { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 6px 10px; min-height: 34px; max-width: 100%; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label { font-size: 13px; font-weight: 600; }
+.field input { width: 100%; min-height: 42px; }
+.act-list { list-style: none; margin: 0; padding: 0; }
+.act-list li { display: grid; grid-template-columns: 64px 1fr; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 14px; }
+.act-list li:first-child { border-top: 0; }
+.act-list time { font-family: var(--font-mono); font-size: 12px; color: var(--muted); padding-top: 2px; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 96px; background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 8px; font-size: 14px; z-index: 30; max-width: calc(100% - 32px); }
+.login { min-height: calc(100vh - 120px); display: grid; place-items: center; }
+.login-card { width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+.login-card h1 { font-size: 20px; }
+.login-card p { margin: 0; color: var(--muted); font-size: 14px; }
+.login-err { color: var(--bad); font-size: 14px; min-height: 22px; }
+.login-top { display: flex; justify-content: flex-end; max-width: 380px; margin: 0 auto; }
+@media (max-width: 760px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .rail { position: static; }
+  .rail .brand { display: none; }
+  .nav { position: fixed; left: 0; right: 0; bottom: 0; flex-direction: row; background: var(--surface); border-top: 1px solid var(--line); z-index: 20; padding: 6px 8px; gap: 2px; }
+  .nav a { flex: 1; flex-direction: column; gap: 2px; font-size: 12px; padding: 6px 4px; justify-content: center; text-align: center; }
+  .two { grid-template-columns: minmax(0, 1fr); }
+  .dev { grid-template-columns: 44px minmax(0, 1fr); }
+  .dev .use, .dev .acts { grid-column: 1 / -1; }
+  .dev .acts { justify-content: flex-start; }
+  h1 { font-size: 21px; }
+}
+</style>
+</head>
+<body>
+
+<section id="login">
+  <div class="login-top"><button class="btn sm" type="button" data-lang-toggle></button></div>
+  <div class="login">
+    <form class="login-card" id="login-form">
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg>
+        <span data-i18n="brand"></span>
+      </div>
+      <div><h1 data-i18n="login_title"></h1><p data-i18n="login_sub"></p></div>
+      <div class="field"><label for="l-name" data-i18n="l_name"></label><input id="l-name" type="text" autocomplete="username"></div>
+      <div class="field"><label for="l-pass" data-i18n="l_pass"></label><input id="l-pass" type="password" autocomplete="current-password"></div>
+      <div class="login-err" id="login-err" role="alert"></div>
+      <button class="btn primary" type="submit" data-i18n="login_btn"></button>
+    </form>
+  </div>
+</section>
+
+<div class="app" id="app" hidden>
+  <aside class="rail">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg>
+      <span data-i18n="brand"></span>
+    </div>
+    <nav class="nav">
+      <a href="#overview" data-nav="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span data-i18n="nav_overview"></span></a>
+      <a href="#devices" data-nav="devices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="10" rx="1.5"/><path d="M0 19h18"/><rect x="18" y="8" width="5" height="11" rx="1"/></svg><span data-i18n="nav_devices"></span></a>
+      <a href="#wifi" data-nav="wifi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg><span data-i18n="nav_wifi"></span></a>
+      <a href="#activity" data-nav="activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span data-i18n="nav_activity"></span></a>
+    </nav>
+  </aside>
+  <main class="main">
+    <div class="top">
+      <div><h1 id="page-title"></h1><p class="sub"><span id="who"></span> · <span id="updated"></span></p></div>
+      <div class="top-actions">
+        <span class="pill good" id="conn"></span>
+        <button class="btn" type="button" data-lang-toggle></button>
+        <button class="btn" id="logout" type="button" data-i18n="logout"></button>
+      </div>
+    </div>
+    <div class="notice err" id="err" hidden></div>
+
+    <section class="view" id="view-overview"><div class="main">
+      <div class="tiles">
+        <div class="tile"><div class="k" data-i18n="t_online"></div><div class="v" id="t-online">0</div></div>
+        <div class="tile"><div class="k" data-i18n="t_down"></div><div class="v"><span id="t-down">0</span><small>Mbps</small></div></div>
+        <div class="tile"><div class="k" data-i18n="t_up"></div><div class="v"><span id="t-up">0</span><small>Mbps</small></div></div>
+        <div class="tile"><div class="k" data-i18n="t_blocked"></div><div class="v" id="t-blocked">0</div></div>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <h2 data-i18n="chart_title"></h2>
+          <div class="legend"><span><i style="background:var(--accent)"></i><span data-i18n="lg_down"></span></span><span><i style="background:var(--warn)"></i><span data-i18n="lg_up"></span></span></div>
+          <svg class="chart" id="chart" viewBox="0 0 480 190" role="img"></svg>
+        </div>
+        <div class="panel"><h2 data-i18n="top_title"></h2><ul class="top-list" id="top-users"></ul></div>
+      </div>
+    </div></section>
+
+    <section class="view" id="view-devices" hidden><div class="main">
+      <div class="toolbar">
+        <input class="search" id="search" type="text" data-i18n-ph="search_ph">
+        <div class="chips">
+          <button class="chip" type="button" data-f="all" aria-pressed="true" data-i18n="f_all"></button>
+          <button class="chip" type="button" data-f="online" aria-pressed="false" data-i18n="f_online"></button>
+          <button class="chip" type="button" data-f="blocked" aria-pressed="false" data-i18n="f_blocked"></button>
+        </div>
+      </div>
+      <div class="devices" id="devices"></div>
+    </div></section>
+
+    <section class="view" id="view-wifi" hidden><div class="main">
+      <div class="panel">
+        <h2 data-i18n="wifi_title"></h2>
+        <dl class="kv">
+          <dt data-i18n="w_24"></dt><dd id="w-24"></dd>
+          <dt data-i18n="w_5"></dt><dd id="w-5"></dd>
+          <dt data-i18n="w_sec"></dt><dd id="w-sec"></dd>
+          <dt data-i18n="w_pc"></dt><dd id="w-pc"></dd>
+        </dl>
+      </div>
+      <div class="notice" data-i18n="wifi_note"></div>
+    </div></section>
+
+    <section class="view" id="view-activity" hidden>
+      <div class="panel"><h2 data-i18n="recent"></h2><ul class="act-list" id="activity"></ul></div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  var T = {
+    en: {
+      brand: "WiFi Admin", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity",
+      title_overview: "Overview", title_devices: "Devices", title_wifi: "WiFi", title_activity: "Activity",
+      login_title: "Sign in", login_sub: "Use the account you made with users.js.", l_name: "Name", l_pass: "Password", login_btn: "Sign in",
+      login_bad: "Wrong name or password.", logout: "Log out", lang_btn: "বাংলা",
+      online: "Online", offline: "Offline", blocked: "Blocked", reconnecting: "Router not reachable", live: "Live",
+      t_online: "Online devices", t_down: "Download", t_up: "Upload", t_blocked: "Blocked",
+      chart_title: "Traffic, last 2 minutes", lg_down: "Download", lg_up: "Upload", ago: "2 min ago", nowl: "now",
+      top_title: "Fastest right now", none_active: "No device is using the internet right now.",
+      search_ph: "Search name, IP or MAC", f_all: "All", f_online: "Online", f_blocked: "Blocked", no_match: "No devices match.",
+      u_now: "Now", u_none: "No internet access", limit: "Limit", no_limit: "No limit", block: "Block", unblock: "Unblock", this_pc: "This computer",
+      wifi_title: "WiFi networks", w_24: "2.4 GHz name", w_5: "5 GHz name", w_sec: "Security", w_pc: "Connected devices",
+      wifi_note: "Changing the WiFi name or password from this app is not ready yet. Use the router page for that.",
+      recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left", e_start: "Connected to the router",
+      x_blocked: "{n} blocked", x_unblocked: "{n} can use the internet again", x_limit: "{n}: {l}", updated: "Updated", confirm_block: "Tap again to block", err_prefix: "Router problem: "
+    },
+    bn: {
+      brand: "ওয়াইফাই অ্যাডমিন", nav_overview: "ওভারভিউ", nav_devices: "ডিভাইস", nav_wifi: "ওয়াইফাই", nav_activity: "কার্যকলাপ",
+      title_overview: "ওভারভিউ", title_devices: "ডিভাইস", title_wifi: "ওয়াইফাই", title_activity: "কার্যকলাপ",
+      login_title: "লগইন", login_sub: "users.js দিয়ে বানানো অ্যাকাউন্ট ব্যবহার করুন।", l_name: "নাম", l_pass: "পাসওয়ার্ড", login_btn: "লগইন",
+      login_bad: "নাম বা পাসওয়ার্ড ভুল।", logout: "লগ আউট", lang_btn: "English",
+      online: "অনলাইন", offline: "অফলাইন", blocked: "ব্লক করা", reconnecting: "রাউটার পাওয়া যাচ্ছে না", live: "লাইভ",
+      t_online: "অনলাইন ডিভাইস", t_down: "ডাউনলোড", t_up: "আপলোড", t_blocked: "ব্লক করা",
+      chart_title: "ট্রাফিক, শেষ ২ মিনিট", lg_down: "ডাউনলোড", lg_up: "আপলোড", ago: "২ মিনিট আগে", nowl: "এখন",
+      top_title: "এখন সবচেয়ে দ্রুত", none_active: "এখন কোনো ডিভাইস ইন্টারনেট ব্যবহার করছে না।",
+      search_ph: "নাম, আইপি বা ম্যাক খুঁজুন", f_all: "সব", f_online: "অনলাইন", f_blocked: "ব্লক করা", no_match: "কোনো ডিভাইস মেলেনি।",
+      u_now: "এখন", u_none: "ইন্টারনেট বন্ধ", limit: "সীমা", no_limit: "সীমা নেই", block: "ব্লক", unblock: "আনব্লক", this_pc: "এই কম্পিউটার",
+      wifi_title: "ওয়াইফাই নেটওয়ার্ক", w_24: "২.৪ গিগাহার্টজের নাম", w_5: "৫ গিগাহার্টজের নাম", w_sec: "নিরাপত্তা", w_pc: "যুক্ত ডিভাইস",
+      wifi_note: "এই অ্যাপ থেকে ওয়াইফাইয়ের নাম বা পাসওয়ার্ড বদলানো এখনো তৈরি হয়নি। সেজন্য রাউটারের পেজ ব্যবহার করুন।",
+      recent: "সাম্প্রতিক ঘটনা", e_block: "{n} ব্লক করা হয়েছে", e_unblock: "{n} আনব্লক করা হয়েছে", e_limit: "{n}-এর সীমা: {l}", e_in: "{n} যুক্ত হয়েছে", e_out: "{n} বেরিয়ে গেছে", e_start: "রাউটারের সাথে যুক্ত হয়েছে",
+      x_blocked: "{n} ব্লক করা হয়েছে", x_unblocked: "{n} আবার ইন্টারনেট ব্যবহার করতে পারবে", x_limit: "{n}: {l}", updated: "আপডেট", confirm_block: "ব্লক করতে আবার চাপুন", err_prefix: "রাউটারের সমস্যা: "
+    }
+  };
+  var lang = "en";
+  try { var sv = localStorage.getItem("wifi-lang"); if (sv === "bn" || sv === "en") lang = sv; } catch (e) {}
+  function t(k, v) { var s = (T[lang][k] != null ? T[lang][k] : T.en[k]) || k; if (v) Object.keys(v).forEach(function (x) { s = s.replace("{" + x + "}", v[x]); }); return s; }
+  function num(x, d) { return Number(x).toLocaleString(lang === "bn" ? "bn-BD" : "en-US", { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+  function $(s) { return document.querySelector(s); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  var UNLIMITED = 38528, LIMITS = [0, 1, 2, 5, 10]; // Mbps; the router keeps limits in KB/s
+  var ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>';
+  var PC = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="11" rx="1.5"/><path d="M2 20h20"/></svg>';
+  var state = { devices: [], me: null, wifi: {} }, events = [], filter = "all", query = "", route = "overview", user = null, pending = {}, failing = false;
+  var series = { d: [], u: [] }, MAXPTS = 40, timer = null, prevMap = null, ttimer;
+
+  function toast(m) { var el = $("#toast"); el.textContent = m; el.hidden = false; clearTimeout(ttimer); ttimer = setTimeout(function () { el.hidden = true; }, 2800); }
+  function api(path, body) {
+    var o = { credentials: "same-origin", headers: { "Content-Type": "application/json" } };
+    if (body) { o.method = "POST"; o.body = JSON.stringify(body); }
+    return fetch(path, o).then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { if (!r.ok) { var e = new Error(j.error || ("HTTP " + r.status)); e.status = r.status; throw e; } return j; }); });
+  }
+  function nowStr() { var d = new Date(); return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
+  function log(key, v) { events.unshift({ time: nowStr(), key: key, v: v }); renderActivity(); }
+  function mbps(kbps) { return kbps * 8 / 1000; }
+  function limitMbps(d) { return d.limitDownKBps >= UNLIMITED || d.limitDownKBps <= 0 ? 0 : Math.round(d.limitDownKBps * 8 / 1000); }
+  function isMe(d) { return state.me && state.me.localhostMAC && state.me.localhostMAC.toLowerCase() === d.mac; }
+
+  function applyStatic() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(function (el) { el.textContent = t(el.dataset.i18n); });
+    document.querySelectorAll("[data-i18n-ph]").forEach(function (el) { el.placeholder = t(el.dataset.i18nPh); });
+    document.querySelectorAll("[data-lang-toggle]").forEach(function (el) { el.textContent = t("lang_btn"); });
+    renderRoute(); renderAll();
+  }
+  document.querySelectorAll("[data-lang-toggle]").forEach(function (b) { b.addEventListener("click", function () { lang = lang === "en" ? "bn" : "en"; try { localStorage.setItem("wifi-lang", lang); } catch (e) {} applyStatic(); }); });
+
+  var VIEWS = ["overview", "devices", "wifi", "activity"];
+  function renderRoute() {
+    VIEWS.forEach(function (k) { $("#view-" + k).hidden = k !== route; var a = document.querySelector('[data-nav="' + k + '"]'); if (k === route) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    $("#page-title").textContent = t("title_" + route);
+  }
+  function readHash() { var h = (location.hash || "#overview").slice(1); route = VIEWS.indexOf(h) > -1 ? h : "overview"; renderRoute(); }
+  window.addEventListener("hashchange", readHash);
+
+  function renderTiles() {
+    var on = state.devices.filter(function (d) { return d.online && !d.blocked; });
+    $("#t-online").textContent = num(on.length);
+    $("#t-blocked").textContent = num(state.devices.filter(function (d) { return d.blocked; }).length);
+    var dn = on.reduce(function (a, d) { return a + d.downKBps; }, 0), up = on.reduce(function (a, d) { return a + d.upKBps; }, 0);
+    $("#t-down").textContent = num(mbps(dn), 2); $("#t-up").textContent = num(mbps(up), 2);
+  }
+  function renderTop() {
+    var list = state.devices.filter(function (d) { return d.online && d.downKBps + d.upKBps > 0; }).sort(function (a, b) { return b.downKBps + b.upKBps - a.downKBps - a.upKBps; }).slice(0, 5);
+    if (!list.length) { $("#top-users").innerHTML = '<li style="grid-template-columns:1fr;color:var(--muted)">' + t("none_active") + "</li>"; return; }
+    var max = list[0].downKBps + list[0].upKBps;
+    $("#top-users").innerHTML = list.map(function (d) { var v = d.downKBps + d.upKBps; return "<li><span>" + esc(d.name) + '</span><span class="mono">' + num(mbps(v), 2) + ' Mbps</span><div class="bar"><span style="width:' + (v / max * 100).toFixed(0) + '%"></span></div></li>'; }).join("");
+  }
+  function renderChart() {
+    var W = 480, H = 190, L = 34, R = 8, T0 = 8, B = 20, N = MAXPTS, d = series.d, u = series.u;
+    if (d.length < 2) { $("#chart").innerHTML = ""; return; }
+    var max = Math.max(1, Math.ceil(Math.max.apply(null, d.concat(u)) * 1.15 * 10) / 10);
+    function X(i) { return L + i * (W - L - R) / (N - 1) + (N - d.length) * (W - L - R) / (N - 1); }
+    function Y(v) { return T0 + (H - T0 - B) * (1 - v / max); }
+    function path(a) { return a.map(function (v, i) { return (i ? "L" : "M") + X(i).toFixed(1) + " " + Y(v).toFixed(1); }).join(""); }
+    var g = ""; for (var k = 0; k <= 4; k++) { var v = max * k / 4, y = Y(v); g += '<line x1="' + L + '" x2="' + (W - R) + '" y1="' + y + '" y2="' + y + '" stroke="var(--line)"/><text x="' + (L - 6) + '" y="' + (y + 3) + '" text-anchor="end">' + (max >= 10 ? Math.round(v) : v.toFixed(1)) + "</text>"; }
+    $("#chart").innerHTML = g + '<text x="' + L + '" y="' + (H - 4) + '">' + t("ago") + '</text><text x="' + (W - R) + '" y="' + (H - 4) + '" text-anchor="end">' + t("nowl") + "</text>" +
+      '<path d="' + path(d) + "L" + X(d.length - 1) + " " + Y(0) + "L" + X(0) + " " + Y(0) + 'Z" fill="var(--accent)" fill-opacity="0.14"/>' +
+      '<path d="' + path(d) + '" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round"/>' +
+      '<path d="' + path(u) + '" fill="none" stroke="var(--warn)" stroke-width="2" stroke-linejoin="round"/>' +
+      '<circle cx="' + X(d.length - 1) + '" cy="' + Y(d[d.length - 1]) + '" r="4" fill="var(--accent)"/><circle cx="' + X(u.length - 1) + '" cy="' + Y(u[u.length - 1]) + '" r="4" fill="var(--warn)"/>';
+  }
+  function renderDevices() {
+    var q = query.toLowerCase();
+    var list = state.devices.filter(function (d) {
+      if (filter === "online" && !(d.online && !d.blocked)) return false;
+      if (filter === "blocked" && !d.blocked) return false;
+      return !q || (d.name + " " + d.ip + " " + d.mac).toLowerCase().indexOf(q) > -1;
+    });
+    if (!list.length) { $("#devices").innerHTML = '<div class="panel">' + t("no_match") + "</div>"; return; }
+    $("#devices").innerHTML = list.map(function (d) {
+      var st = d.blocked ? '<span class="pill bad">' + t("blocked") + "</span>" : d.online ? '<span class="pill good">' + t("online") + "</span>" : '<span class="pill warn">' + t("offline") + "</span>";
+      var me = isMe(d) ? ' <span class="pill warn">' + t("this_pc") + "</span>" : "";
+      var cur = limitMbps(d);
+      var opts = LIMITS.map(function (l) { return '<option value="' + l + '"' + (cur === l ? " selected" : "") + ">" + (l ? num(l) + " Mbps" : t("no_limit")) + "</option>"; }).join("");
+      if (LIMITS.indexOf(cur) < 0) opts += '<option value="' + cur + '" selected>' + num(cur) + " Mbps</option>";
+      var use = d.blocked ? t("u_none") : d.online ? t("u_now") + " <b>↓ " + num(mbps(d.downKBps), 2) + " ↑ " + num(mbps(d.upKBps), 2) + " Mbps</b>" : "";
+      var busy = pending[d.mac] ? " disabled" : "";
+      var blockBtn = isMe(d) && !d.blocked ? "" : '<button class="btn sm ' + (d.blocked ? "" : "danger") + '" type="button" data-block="' + d.mac + '"' + busy + ">" + (d.blocked ? t("unblock") : t("block")) + "</button>";
+      return '<div class="dev' + (d.blocked ? " blocked" : "") + '"><div class="ico">' + (isMe(d) ? PC : ICON) + "</div>" +
+        '<div><div class="name">' + esc(d.name) + " " + st + me + '</div><div class="meta">' + (d.ip ? d.ip + " · " : "") + d.mac + (d.band ? " · " + d.band.replace("wifi_", "") : "") + "</div></div>" +
+        '<div class="use">' + use + "</div>" +
+        '<div class="acts"><label>' + t("limit") + ' <select data-limit="' + d.mac + '"' + (d.blocked || !d.online || busy ? " disabled" : "") + ">" + opts + "</select></label>" + blockBtn + "</div></div>";
+    }).join("");
+  }
+  function renderWifi() {
+    var w = state.wifi || {};
+    $("#w-24").textContent = (w.ssid24 || "").trim(); $("#w-5").textContent = (w.ssid5 || "").trim(); $("#w-sec").textContent = w.security || "";
+    $("#w-pc").textContent = num(state.devices.filter(function (d) { return d.online; }).length);
+  }
+  function renderActivity() {
+    $("#activity").innerHTML = events.slice(0, 40).map(function (e) { return "<li><time>" + e.time + "</time><span>" + esc(t(e.key, e.v)) + "</span></li>"; }).join("");
+  }
+  function renderStatus() {
+    var p = $("#conn"); p.className = "pill " + (failing ? "bad" : "good"); p.textContent = failing ? t("reconnecting") : t("live");
+    $("#who").textContent = user ? user.name + " (" + user.role + ")" : "";
+  }
+  function renderAll() { renderTiles(); renderTop(); renderDevices(); renderWifi(); renderChart(); renderActivity(); renderStatus(); }
+
+  function poll() {
+    return api("/api/devices").then(function (s) {
+      failing = false; $("#err").hidden = true;
+      var map = {}; s.devices.forEach(function (d) { map[d.mac] = d; });
+      if (prevMap) {
+        s.devices.forEach(function (d) { var p = prevMap[d.mac]; if ((!p || !p.online) && d.online) log("e_in", { n: d.name }); });
+        Object.keys(prevMap).forEach(function (m) { if (prevMap[m].online && !(map[m] && map[m].online)) log("e_out", { n: prevMap[m].name }); });
+      } else log("e_start", {});
+      prevMap = map; state.devices = s.devices; state.me = s.me; state.wifi = s.wifi;
+      var on = s.devices.filter(function (d) { return d.online && !d.blocked; });
+      series.d.push(mbps(on.reduce(function (a, d) { return a + d.downKBps; }, 0))); series.u.push(mbps(on.reduce(function (a, d) { return a + d.upKBps; }, 0)));
+      if (series.d.length > MAXPTS) { series.d.shift(); series.u.shift(); }
+      $("#updated").textContent = t("updated") + " " + nowStr();
+      renderAll();
+    }).catch(function (e) {
+      if (e.status === 401) return signedOut();
+      failing = true; $("#err").hidden = false; $("#err").textContent = t("err_prefix") + e.message; renderStatus();
+    });
+  }
+  function start() { $("#login").hidden = true; $("#app").hidden = false; readHash(); prevMap = null; series = { d: [], u: [] }; poll(); clearInterval(timer); timer = setInterval(poll, 6000); }
+  function signedOut() { clearInterval(timer); user = null; $("#app").hidden = true; $("#login").hidden = false; }
+
+  $("#devices").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-block]"); if (!b) return;
+    var mac = b.dataset.block, d = state.devices.filter(function (x) { return x.mac === mac; })[0], want = !d.blocked;
+    if (want && b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = t("confirm_block"); setTimeout(function () { if (b.isConnected) { b.dataset.armed = ""; b.textContent = t("block"); } }, 3500); return; }
+    pending[mac] = true; renderDevices();
+    api("/api/block", { mac: mac, blocked: want }).then(function () { log(want ? "e_block" : "e_unblock", { n: d.name }); toast(t(want ? "x_blocked" : "x_unblocked", { n: d.name })); })
+      .catch(function (er) { toast(er.message); }).then(function () { delete pending[mac]; return poll(); });
+  });
+  $("#devices").addEventListener("change", function (e) {
+    var s = e.target.closest("[data-limit]"); if (!s) return;
+    var mac = s.dataset.limit, d = state.devices.filter(function (x) { return x.mac === mac; })[0], m = +s.value;
+    pending[mac] = true; renderDevices();
+    api("/api/limit", { mac: mac, kbps: m ? m * 125 : 0 }).then(function () { var l = m ? num(m) + " Mbps" : t("no_limit"); log("e_limit", { n: d.name, l: l }); toast(t("x_limit", { n: d.name, l: l })); })
+      .catch(function (er) { toast(er.message); }).then(function () { delete pending[mac]; return poll(); });
+  });
+  $("#search").addEventListener("input", function (e) { query = e.target.value; renderDevices(); });
+  document.querySelectorAll(".chip").forEach(function (c) { c.addEventListener("click", function () { filter = c.dataset.f; document.querySelectorAll(".chip").forEach(function (x) { x.setAttribute("aria-pressed", x === c ? "true" : "false"); }); renderDevices(); }); });
+
+  $("#login-form").addEventListener("submit", function (e) {
+    e.preventDefault(); $("#login-err").textContent = "";
+    api("/api/login", { name: $("#l-name").value.trim(), password: $("#l-pass").value }).then(function (u) { user = u; $("#l-pass").value = ""; start(); })
+      .catch(function (er) { $("#login-err").textContent = er.status === 401 ? t("login_bad") : er.message; });
+  });
+  $("#logout").addEventListener("click", function () { api("/api/logout", {}).catch(function () {}).then(signedOut); });
+
+  applyStatic();
+  api("/api/me").then(function (u) { user = u; start(); }).catch(function () {});
+})();
+</script>
+</body>
+</html>
