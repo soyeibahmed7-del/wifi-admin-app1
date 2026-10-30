@@ -5,6 +5,9 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
@@ -167,6 +170,24 @@ public class MainActivity extends Activity {
                 return true;
             } catch (Exception e) {
                 return false;
+            }
+        }
+
+        /** The launcher icon of an installed app as a base64 PNG (taken from the phone itself). Empty string if not installed. */
+        @JavascriptInterface
+        public String appIcon(String pkg) {
+            try {
+                Drawable d = getPackageManager().getApplicationIcon(pkg);
+                int size = 96;
+                Bitmap bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888);
+                Canvas c = new Canvas(bmp);
+                d.setBounds(0, 0, size, size);
+                d.draw(c);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                bmp.compress(Bitmap.CompressFormat.PNG, 100, out);
+                return Base64.encodeToString(out.toByteArray(), Base64.NO_WRAP);
+            } catch (Exception e) {
+                return "";
             }
         }
 
