@@ -1,0 +1,12 @@
+{
+  "name": "routemate-ai-gateway",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Authenticated Gemini gateway for RouterMate",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
