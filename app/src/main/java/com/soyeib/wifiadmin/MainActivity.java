@@ -1,6 +1,9 @@
 package com.soyeib.wifiadmin;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -136,12 +139,43 @@ public class MainActivity extends Activity {
             });
         }
 
-        /** Opens the router's own admin page in the phone's browser. Only http/https addresses. */
+        /** Opens an address in the matching app: web pages, wa.me (WhatsApp) links, or tel: (dialer, no call is placed). */
         @JavascriptInterface
         public boolean openUrl(String url) {
             try {
-                if (url == null || !(url.startsWith("http://") || url.startsWith("https://"))) return false;
-                Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                if (url == null || !(url.startsWith("http://") || url.startsWith("https://") || url.startsWith("tel:"))) return false;
+                Intent i = new Intent(url.startsWith("tel:") ? Intent.ACTION_DIAL : Intent.ACTION_VIEW, Uri.parse(url));
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(i);
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        /** Puts plain text on the clipboard. */
+        @JavascriptInterface
+        public boolean copyText(final String text) {
+            try {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                        if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("text", text));
+                    }
+                });
+                return true;
+            } catch (Exception e) {
+                return false;
+            }
+        }
+
+        /** Opens an installed app by package name (only the packages listed in the manifest). False if it is not installed. */
+        @JavascriptInterface
+        public boolean openApp(String pkg) {
+            try {
+                Intent i = getPackageManager().getLaunchIntentForPackage(pkg);
+                if (i == null) return false;
                 i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 startActivity(i);
                 return true;
