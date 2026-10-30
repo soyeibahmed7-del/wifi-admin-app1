@@ -207,7 +207,7 @@ h1 { font-size: 30px; }
 .rd-i svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .rd-n { flex: 1; min-width: 0; font-weight: 600; } .rd-n small { display: block; color: #6fb2ff; font-weight: 400; font-family: var(--font-mono); font-size: 12px; }
 .rd-s { color: var(--good); font-size: 13px; }
-.wtabs { flex-wrap: wrap; }
+.wtabs { flex-wrap: wrap; gap: 6px; } .wtabs .chip { padding: 5px 11px; font-size: 13px; }
 #view-wifi[data-tab="net"] .wb-guest, #view-wifi[data-tab="net"] .wb-acl,
 #view-wifi[data-tab="guest"] .wb-net, #view-wifi[data-tab="guest"] .wb-acl,
 #view-wifi[data-tab="acl"] .wb-net, #view-wifi[data-tab="acl"] .wb-guest { display: none !important; }
@@ -305,6 +305,27 @@ h1 { font-size: 26px; }
 @keyframes ho3 { from { transform: rotateX(30deg) rotateY(50deg) rotateZ(0deg); } to { transform: rotateX(30deg) rotateY(50deg) rotateZ(360deg); } }
 .holo.paused * { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) { .holo * { animation: none !important; } }
+
+/* AI pane */
+.chatbox { display: flex; flex-direction: column; gap: 10px; }
+#chat-log { display: flex; flex-direction: column; gap: 8px; max-height: 46vh; min-height: 150px; overflow-y: auto; padding-right: 2px; }
+.msg { max-width: 88%; padding: 9px 12px; border-radius: 14px; font-size: 14px; overflow-wrap: anywhere; white-space: pre-wrap; }
+.msg.me { align-self: flex-end; background: linear-gradient(180deg, #2f9bff, #0b63e6); color: #fff; border-bottom-right-radius: 4px; }
+.msg.ai { align-self: flex-start; background: rgba(30,64,130,.45); border: 1px solid var(--line); border-bottom-left-radius: 4px; }
+.msg.dots { color: var(--muted); animation: hpulse 1.4s ease-in-out infinite; }
+.aerr { color: var(--bad); }
+.act { font-size: 12px; margin-bottom: 6px; padding: 4px 8px; border-radius: 8px; }
+.act.ok { background: var(--good-soft); color: var(--good); } .act.bad { background: var(--bad-soft); color: var(--bad); }
+.quick { display: flex; flex-wrap: wrap; gap: 6px; } .quick .chip { font-size: 13px; text-align: start; }
+#chat-form { display: flex; gap: 8px; } #chat-form input { flex: 1; min-width: 0; min-height: 44px; }
+.sc { display: flex; align-items: baseline; gap: 8px; } .sc b { font-family: var(--font-display); font-size: 44px; line-height: 1; } .sc.good b { color: var(--good); } .sc.warn b { color: var(--warn); } .sc.bad b { color: var(--bad); }
+.ins { padding: 8px 10px; border-radius: 10px; margin-bottom: 6px; font-size: 14px; background: rgba(30,64,130,.3); border-inline-start: 3px solid #2f9bff; }
+.ins.ok { border-color: var(--good); background: var(--good-soft); } .ins.warn { border-color: var(--warn); background: var(--warn-soft); } .ins.bad { border-color: var(--bad); background: var(--bad-soft); }
+.recs { margin: 0 0 10px; padding-inline-start: 18px; font-size: 14px; display: flex; flex-direction: column; gap: 6px; }
+.ai-pane { display: flex; flex-direction: column; gap: 12px; } .ai-pane[hidden] { display: none; }
+.di { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid rgba(56,120,230,.22); } .di:first-of-type { border-top: 0; }
+.di-n { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; } .di-n small { display: block; font-weight: 400; color: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+@media (max-width: 760px) { .nav a { font-size: 11px; } }
 </style>
 </head>
 <body>
@@ -360,6 +381,7 @@ h1 { font-size: 26px; }
       <a href="#overview" data-nav="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span data-i18n="nav_overview"></span></a>
       <a href="#devices" data-nav="devices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="10" rx="1.5"/><path d="M0 19h18"/><rect x="18" y="8" width="5" height="11" rx="1"/></svg><span data-i18n="nav_devices"></span></a>
       <a href="#wifi" data-nav="wifi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg><span data-i18n="nav_wifi"></span></a>
+      <a href="#ai" data-nav="ai"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span data-i18n="nav_ai"></span></a>
       <a href="#activity" data-nav="activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span data-i18n="nav_activity"></span></a>
       <a href="#settings" data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="nav_settings"></span></a>
     </nav>
@@ -451,10 +473,28 @@ h1 { font-size: 26px; }
         <h2 data-i18n="app_settings"></h2>
         <button class="btn" id="reset-app" type="button" data-i18n="app_settings_btn"></button>
       </div>
+      <div class="panel"><h2 data-i18n="aiset_t"></h2><p class="hint" data-i18n="aiset_p"></p>
+        <div class="field"><label for="ai-url" data-i18n="aiset_url"></label><input id="ai-url" type="text" inputmode="url" autocapitalize="off" placeholder="https://routermate-ai.xxx.workers.dev"></div>
+        <div class="field"><label for="ai-token" data-i18n="aiset_tok"></label><input id="ai-token" type="password" autocomplete="off"></div>
+        <div class="acl-actions"><button class="btn primary" type="button" id="ai-save" data-i18n="acl_save"></button><button class="btn" type="button" id="ai-off" data-i18n="aiset_off"></button><span class="hint" id="ai-msg"></span></div></div>
       <div class="panel about"><img src="img/icon.png" alt=""><div><b data-i18n="about_t"></b><small data-i18n="about_s"></small></div></div>
       <div class="panel">
         <button class="btn danger" id="logout" type="button" data-i18n="logout"></button>
       </div>
+    </div></section>
+
+    <section class="view" id="view-ai" hidden><div class="main">
+      <div class="chips wtabs" id="aitabs"><button class="chip" type="button" data-at="chat" aria-pressed="true" data-i18n="at_chat"></button><button class="chip" type="button" data-at="health" aria-pressed="false" data-i18n="at_health"></button><button class="chip" type="button" data-at="dev" aria-pressed="false" data-i18n="at_dev"></button><button class="chip" type="button" data-at="sec" aria-pressed="false" data-i18n="at_sec"></button></div>
+      <div id="ai-chat" class="ai-pane">
+        <div class="panel" id="ai-setup" hidden><h2 data-i18n="ai_setup_t"></h2><p class="hint" data-i18n="ai_setup_p"></p><button class="btn primary" type="button" id="ai-goset" data-i18n="ai_goset"></button></div>
+        <div class="panel chatbox"><div id="chat-log" aria-live="polite"></div>
+          <div class="quick" id="chat-quick"></div>
+          <form id="chat-form" autocomplete="off"><input id="chat-in" type="text" data-i18n-ph="ai_ph" maxlength="400"><button class="btn primary" type="submit" id="chat-send" data-i18n="ai_send"></button></form>
+          <button class="btn sm" type="button" id="chat-clear" data-i18n="ai_clear"></button></div>
+      </div>
+      <div id="ai-health" class="ai-pane" hidden></div>
+      <div id="ai-dev" class="ai-pane" hidden></div>
+      <div id="ai-sec" class="ai-pane" hidden></div>
     </div></section>
 
     <section class="view" id="view-activity" hidden>
@@ -466,11 +506,20 @@ h1 { font-size: 26px; }
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="router-client.js"></script>
+<script src="ai-tools.js"></script>
 <script>
 (function () {
   var T = {
     en: {
-      brand: "RouteMate", wt_net: "WiFi Networks", wt_guest: "Guest Network", wt_acl: "Access List", recent_dev: "Recent Devices", connected: "Connected", router_status: "Router Status", about_t: "About RouteMate", about_s: "Version 1.0 · Your router's best friend", tagline: "YOUR ROUTER'S BEST FRIEND", rd_none: "No devices online.", more: "devices", login_h: "Router Admin Login", secure: "Secure Access", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity", nav_settings: "Settings",
+      brand: "RouteMate", nav_ai: "AI", title_ai: "AI Assistant", at_chat: "Assistant", at_health: "Health", at_dev: "Devices", at_sec: "Security", ai_ph: "Ask or tell me what to do…", ai_send: "Send", ai_clear: "Clear chat", ai_think: "Thinking…", ai_hello: "Hi! I can show devices, explain slow WiFi, and block/unblock, blacklist or limit a device. Try one below.", ai_setup_t: "AI is not set up yet", ai_setup_p: "The chat needs your own AI backend (it keeps the Gemini key safe, outside the app). Health, Devices and Security tabs work without it. Add the backend link in Settings.", ai_goset: "Open Settings", q1: "Which device uses the most bandwidth?", q2: "Why is my WiFi slow?", q3: "Show blacklisted devices", q4: "Is anything unusual on my network?",
+aiset_t: "AI backend", aiset_p: "Link and token from your Cloudflare Worker. They are saved only on this phone. See ai-backend/README.md.", aiset_url: "Backend link", aiset_tok: "App token", aiset_off: "Remove", ai_saved: "Saved.", ai_removed: "Removed.",
+ae_auth: "The backend rejected the token. Check the app token in Settings.", ae_busy: "The AI is busy or the free limit is used up. Try again in a minute.", ae_backend: "The AI backend returned an error ({s}).", ae_net: "Could not reach the AI backend. Check the link and your internet.", ae_empty: "The AI gave no answer. Try again.", ae_many: "That took too many steps. Please ask in a simpler way.",
+ax_ok: "Done and confirmed by the router", ax_fail: "Not done", ax_read: "Checked router data", fn_block_device: "Block", fn_unblock_device: "Unblock", fn_blacklist_add: "Add to blacklist", fn_blacklist_remove: "Remove from blacklist", fn_set_speed_limit: "Speed limit", fn_blacklist_show: "Access list", fn_list_devices: "Devices", fn_top_bandwidth: "Top bandwidth", fn_network_health: "Health",
+hp_score: "Network health", hp_insights: "AI Insights", hp_recs: "Smart Recommendations", hp_ask: "Ask AI to explain", ph_good: "Good", ph_fair: "Needs attention", ph_poor: "Problems found",
+h_good: "No problems found in the data the router shows.", h_net: "{r}: internet problem ({s}).", h_open: "{r}: WiFi has no password.", h_guest_open: "{r}: guest WiFi is on without a password.", h_crowd: "{r}: {n} devices are online.", h_24only: "{r}: only a 2.4 GHz WiFi is shown, so many devices share one band.", h_heavy: "{n} is using {p}% of the traffic right now.", h_unknown: "{n} online device(s) you have not marked as known: {names}.", h_limited: "{n} device(s) have a speed limit.", h_blocked: "{n} device(s) are blocked.",
+r_net: "Check the WAN cable, restart the ISP device, then call your ISP (Settings has the ISP buttons).", r_open: "Open the router page (globe button) and set a WPA2 WiFi password.", r_guest: "Turn off guest WiFi or give it a password on the router page.", r_crowd: "Limit heavy devices, block devices you do not know, and disconnect unused ones.", r_24: "If your router has a 5 GHz network, move capable phones and laptops to it.", r_heavy: "If it slows others, set a speed limit for that device (Devices page or ask the AI).", r_unknown: "Check them in the Devices tab. If you do not recognise one, block it and change the WiFi password.", r_good: "Keep the router password strong and change it now and then.", r_limited: "", r_blocked: "",
+di_title: "Device Intelligence", di_new: "New", di_known: "Known", di_markall: "Mark all online as known", di_none: "No devices.", di_me: "This phone", di_off: "Offline", di_blk: "Blocked", di_note: "Names come from the router. \"New\" means you have not marked it as known yet.",
+sa_title: "Security Advisor", sa_ok: "No security problem is visible in the data the router shows.", sa_tip1: "Whitelist mode lets only listed devices connect: WiFi page, Access List tab.", sa_tip2: "If an unknown device appears, block it and change the WiFi password on the router page.", sa_tip3: "Change the router admin password if you shared it.", sa_note: "The AI chat sends device names, IPs and speeds (not passwords or full MAC addresses) to Google Gemini through your backend.", wt_net: "WiFi Networks", wt_guest: "Guest Network", wt_acl: "Access List", recent_dev: "Recent Devices", connected: "Connected", router_status: "Router Status", about_t: "About RouteMate", about_s: "Version 1.0 · Your router's best friend", tagline: "YOUR ROUTER'S BEST FRIEND", rd_none: "No devices online.", more: "devices", login_h: "Router Admin Login", secure: "Secure Access", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity", nav_settings: "Settings",
       title_overview: "Overview", title_devices: "Devices", title_wifi: "WiFi", title_activity: "Activity", title_settings: "Settings", set_lang: "Language", set_router: "Router", t_guests: "Guest devices",
       login_title: "Sign in", login_sub: "Enter your app password.", l_pass: "App password", login_btn: "Sign in",
       login_bad: "Wrong password.", logout: "Log out", router_page: "Open router page", guest_pill: "Guest", guest_note: "Guest devices can only be viewed.", lang_btn: "বাংলা",
@@ -483,14 +532,22 @@ h1 { font-size: 26px; }
       ptr_pull: "Pull down to refresh", ptr_release: "Release to refresh", ptr_loading: "Refreshing…", isp_title: "ISP", isp_wa: "WhatsApp", isp_call: "Call", isp_bkash: "bKash", isp_imo: "IMO", isp_imo_copied: "Number copied. In IMO, search or paste the number.", isp_noimo: "IMO app not found. Opening its store page.", isp_copied: "Number copied. In bKash choose Send Money and paste it.", isp_nobkash: "bKash app not found. Opening its store page.", isp_nowa: "Could not open WhatsApp.", wan_title: "Internet details", via_pill: "You connect through this", grp_count: "{n} device(s)", set_routers: "Routers", a_type: "Router model", r_readonly: "View only", add_router: "Add another router", s_name: "Router name", add_btn: "Add router", r_open: "Open page", r_remove: "Remove", r_confirm: "Tap again to remove", r_ok: "Connected", r_all: "All routers", r_added: "Router added.", r_last: "At least one router must stay.", r_dup: "That router is already added.", e_start: "Connected to {r}", net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_f3: "This router has no guest network.", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
       wifi_title: "WiFi networks", w_24: "2.4 GHz name", w_5: "5 GHz name", w_sec: "Security", w_pc: "Connected devices",
       wifi_note: "Changing the WiFi name or password and restarting the router are not in this version yet. Use the router page for those.",
-      recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left",
+      recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_ai: "AI: {n}", e_out: "{n} left",
       s_dummy: "",
       acl_title: "Access list", acl_black: "Blacklist", acl_white: "Whitelist", acl_hint_deny: "Blacklist: ticked devices are kept out of the WiFi. Everyone else can connect.", acl_hint_pass: "Whitelist: only ticked devices can use the WiFi. Everyone else is kept out.", acl_save: "Save", acl_confirm: "Tap again to apply", acl_you: "This phone", acl_saved: "Saved.", acl_loading: "Loading…", acl_empty: "No devices yet.", acl_off: "Not saved yet",
       setup_title: "Set up", setup_sub: "Connect to your router once. Stay on your home WiFi.", s_url: "Router address", s_rpw: "Router admin password", s_apw: "New app password (6+ characters)", s_apw2: "Repeat app password", s_btn: "Save and connect", s_short: "App password needs at least 6 characters.", s_match: "The two app passwords do not match.", s_checking: "Connecting…", s_rbad: "The router did not accept that password.", app_settings: "App settings", app_settings_btn: "Change router or app password", app_settings_confirm: "Tap again to erase saved settings",
       x_blocked: "{n} blocked", x_unblocked: "{n} can use the internet again", x_limit: "{n}: {l}", updated: "Updated", confirm_block: "Tap again to block", err_prefix: "Router problem: "
     },
     bn: {
-      brand: "RouteMate", wt_net: "ওয়াইফাই নেটওয়ার্ক", wt_guest: "গেস্ট নেটওয়ার্ক", wt_acl: "অ্যাক্সেস তালিকা", recent_dev: "সাম্প্রতিক ডিভাইস", connected: "সংযুক্ত", router_status: "রাউটারের অবস্থা", about_t: "RouteMate সম্পর্কে", about_s: "ভার্সন ১.০ · আপনার রাউটারের বন্ধু", tagline: "আপনার রাউটারের সেরা বন্ধু", rd_none: "কোনো ডিভাইস অনলাইনে নেই।", more: "টি ডিভাইস", login_h: "রাউটার অ্যাডমিন লগইন", secure: "নিরাপদ প্রবেশ", nav_overview: "ওভারভিউ", nav_devices: "ডিভাইস", nav_wifi: "ওয়াইফাই", nav_activity: "কার্যকলাপ", nav_settings: "সেটিংস",
+      brand: "RouteMate", nav_ai: "এআই", title_ai: "এআই সহকারী", at_chat: "সহকারী", at_health: "স্বাস্থ্য", at_dev: "ডিভাইস", at_sec: "নিরাপত্তা", ai_ph: "প্রশ্ন করুন বা কাজ বলুন…", ai_send: "পাঠান", ai_clear: "চ্যাট মুছুন", ai_think: "ভাবছি…", ai_hello: "হাই! আমি ডিভাইস দেখাতে, ধীর ওয়াইফাইয়ের কারণ বলতে, আর ডিভাইস ব্লক/আনব্লক, ব্ল্যাকলিস্ট বা গতি সীমা দিতে পারি। নিচের একটা চেষ্টা করুন।", ai_setup_t: "এআই এখনও সেট করা হয়নি", ai_setup_p: "চ্যাটের জন্য আপনার নিজের এআই ব্যাকএন্ড লাগবে (এটা Gemini কী অ্যাপের বাইরে নিরাপদ রাখে)। স্বাস্থ্য, ডিভাইস ও নিরাপত্তা ট্যাব এটা ছাড়াই চলে। সেটিংসে ব্যাকএন্ডের লিংক দিন।", ai_goset: "সেটিংস খুলুন", q1: "কোন ডিভাইস সবচেয়ে বেশি ডেটা নিচ্ছে?", q2: "আমার ওয়াইফাই ধীর কেন?", q3: "ব্ল্যাকলিস্ট করা ডিভাইস দেখাও", q4: "আমার নেটওয়ার্কে অস্বাভাবিক কিছু আছে?",
+aiset_t: "এআই ব্যাকএন্ড", aiset_p: "আপনার Cloudflare Worker-এর লিংক ও টোকেন। এগুলো শুধু এই ফোনে থাকে। ai-backend/README.md দেখুন।", aiset_url: "ব্যাকএন্ড লিংক", aiset_tok: "অ্যাপ টোকেন", aiset_off: "সরান", ai_saved: "সেভ হয়েছে।", ai_removed: "সরানো হয়েছে।",
+ae_auth: "ব্যাকএন্ড টোকেন গ্রহণ করেনি। সেটিংসে টোকেন মিলিয়ে দেখুন।", ae_busy: "এআই ব্যস্ত বা ফ্রি সীমা শেষ। এক মিনিট পরে আবার চেষ্টা করুন।", ae_backend: "এআই ব্যাকএন্ডে সমস্যা ({s})।", ae_net: "এআই ব্যাকএন্ডে পৌঁছানো যায়নি। লিংক ও ইন্টারনেট দেখুন।", ae_empty: "এআই কোনো উত্তর দেয়নি। আবার চেষ্টা করুন।", ae_many: "অনেক ধাপ লেগে গেছে। সহজ করে আবার বলুন।",
+ax_ok: "হয়েছে, রাউটার নিশ্চিত করেছে", ax_fail: "হয়নি", ax_read: "রাউটারের তথ্য দেখা হয়েছে", fn_block_device: "ব্লক", fn_unblock_device: "আনব্লক", fn_blacklist_add: "ব্ল্যাকলিস্টে যোগ", fn_blacklist_remove: "ব্ল্যাকলিস্ট থেকে সরানো", fn_set_speed_limit: "গতি সীমা", fn_blacklist_show: "অ্যাক্সেস তালিকা", fn_list_devices: "ডিভাইস", fn_top_bandwidth: "সবচেয়ে বেশি ব্যবহার", fn_network_health: "স্বাস্থ্য",
+hp_score: "নেটওয়ার্কের স্বাস্থ্য", hp_insights: "এআই ইনসাইটস", hp_recs: "স্মার্ট পরামর্শ", hp_ask: "এআইকে ব্যাখ্যা করতে বলুন", ph_good: "ভালো", ph_fair: "নজর দিন", ph_poor: "সমস্যা আছে",
+h_good: "রাউটার যা দেখায় তাতে কোনো সমস্যা পাওয়া যায়নি।", h_net: "{r}: ইন্টারনেটের সমস্যা ({s})।", h_open: "{r}: ওয়াইফাইয়ে পাসওয়ার্ড নেই।", h_guest_open: "{r}: গেস্ট ওয়াইফাই পাসওয়ার্ড ছাড়া চালু।", h_crowd: "{r}: {n}টি ডিভাইস অনলাইনে।", h_24only: "{r}: শুধু ২.৪ GHz ওয়াইফাই দেখা যাচ্ছে, তাই অনেক ডিভাইস একই ব্যান্ড ভাগ করছে।", h_heavy: "{n} এখন {p}% ট্রাফিক ব্যবহার করছে।", h_unknown: "{n}টি অনলাইন ডিভাইস আপনি \"পরিচিত\" চিহ্নিত করেননি: {names}।", h_limited: "{n}টি ডিভাইসে গতি সীমা আছে।", h_blocked: "{n}টি ডিভাইস ব্লক করা।",
+r_net: "WAN ক্যাবল দেখুন, ISP-র ডিভাইস রিস্টার্ট করুন, তারপর ISP-কে ফোন করুন (সেটিংসে ISP বোতাম আছে)।", r_open: "রাউটার পেজে (গ্লোব বোতাম) গিয়ে WPA2 ওয়াইফাই পাসওয়ার্ড দিন।", r_guest: "রাউটার পেজে গেস্ট ওয়াইফাই বন্ধ করুন বা পাসওয়ার্ড দিন।", r_crowd: "বেশি ব্যবহারকারী ডিভাইসে সীমা দিন, অচেনা ডিভাইস ব্লক করুন, ব্যবহার না হওয়াগুলো সরান।", r_24: "রাউটারে ৫ GHz নেটওয়ার্ক থাকলে সক্ষম ফোন ও ল্যাপটপ সেখানে নিন।", r_heavy: "অন্যদের ধীর হলে ওই ডিভাইসের গতি সীমা দিন (ডিভাইস পেজে বা এআইকে বলে)।", r_unknown: "ডিভাইস ট্যাবে দেখুন। না চিনলে ব্লক করুন আর ওয়াইফাই পাসওয়ার্ড বদলান।", r_good: "রাউটারের পাসওয়ার্ড শক্ত রাখুন আর মাঝে মাঝে বদলান।", r_limited: "", r_blocked: "",
+di_title: "ডিভাইসের পরিচিতি", di_new: "নতুন", di_known: "পরিচিত", di_markall: "অনলাইন সবাইকে পরিচিত চিহ্নিত করুন", di_none: "কোনো ডিভাইস নেই।", di_me: "এই ফোন", di_off: "অফলাইন", di_blk: "ব্লক", di_note: "নাম রাউটার থেকে আসে। \"নতুন\" মানে আপনি এখনও পরিচিত চিহ্নিত করেননি।",
+sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউটার যা দেখায় তাতে নিরাপত্তার কোনো সমস্যা দেখা যাচ্ছে না।", sa_tip1: "হোয়াইটলিস্ট মোডে শুধু তালিকার ডিভাইস যুক্ত হতে পারে: ওয়াইফাই পেজ, অ্যাক্সেস তালিকা ট্যাব।", sa_tip2: "অচেনা ডিভাইস এলে ব্লক করুন আর রাউটার পেজে ওয়াইফাই পাসওয়ার্ড বদলান।", sa_tip3: "রাউটারের অ্যাডমিন পাসওয়ার্ড কাউকে দিয়ে থাকলে বদলে ফেলুন।", sa_note: "এআই চ্যাট আপনার ব্যাকএন্ডের মাধ্যমে Google Gemini-কে ডিভাইসের নাম, IP ও গতি পাঠায় (পাসওয়ার্ড বা পুরো MAC নয়)।", wt_net: "ওয়াইফাই নেটওয়ার্ক", wt_guest: "গেস্ট নেটওয়ার্ক", wt_acl: "অ্যাক্সেস তালিকা", recent_dev: "সাম্প্রতিক ডিভাইস", connected: "সংযুক্ত", router_status: "রাউটারের অবস্থা", about_t: "RouteMate সম্পর্কে", about_s: "ভার্সন ১.০ · আপনার রাউটারের বন্ধু", tagline: "আপনার রাউটারের সেরা বন্ধু", rd_none: "কোনো ডিভাইস অনলাইনে নেই।", more: "টি ডিভাইস", login_h: "রাউটার অ্যাডমিন লগইন", secure: "নিরাপদ প্রবেশ", nav_overview: "ওভারভিউ", nav_devices: "ডিভাইস", nav_wifi: "ওয়াইফাই", nav_activity: "কার্যকলাপ", nav_settings: "সেটিংস",
       title_overview: "ওভারভিউ", title_devices: "ডিভাইস", title_wifi: "ওয়াইফাই", title_activity: "কার্যকলাপ", title_settings: "সেটিংস", set_lang: "ভাষা", set_router: "রাউটার", t_guests: "গেস্ট ডিভাইস",
       login_title: "লগইন", login_sub: "অ্যাপের পাসওয়ার্ড দিন।", l_pass: "অ্যাপের পাসওয়ার্ড", login_btn: "লগইন",
       login_bad: "পাসওয়ার্ড ভুল।", logout: "লগ আউট", router_page: "রাউটারের পেজ খুলুন", guest_pill: "গেস্ট", guest_note: "গেস্ট ডিভাইস শুধু দেখা যায়।", lang_btn: "English",
@@ -600,7 +657,7 @@ h1 { font-size: 26px; }
   }
   document.querySelectorAll("[data-lang-toggle]").forEach(function (b) { b.addEventListener("click", function () { lang = lang === "en" ? "bn" : "en"; try { localStorage.setItem("wifi-lang", lang); } catch (e) {} applyStatic(); renderAcl(); markLang(); }); });
 
-  var VIEWS = ["overview", "devices", "wifi", "activity", "settings"];
+  var VIEWS = ["overview", "devices", "wifi", "ai", "activity", "settings"];
   document.addEventListener("visibilitychange", function () { var h = document.querySelector(".holo"); if (h) h.classList.toggle("paused", document.hidden); });
   function renderRoute() {
     VIEWS.forEach(function (k) { $("#view-" + k).hidden = k !== route; var a = document.querySelector('[data-nav="' + k + '"]'); if (k === route) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
@@ -742,7 +799,7 @@ h1 { font-size: 26px; }
   var aclSig = "";
   function renderAll() {
     var sg = aclDevices().map(function (d) { return d.mac + d.name; }).join("|") + "|" + routers().length; if (sg !== aclSig) { aclSig = sg; renderAcl(); }
-    renderBar(); renderTiles(); renderLists(); renderRecent(); renderDevices(); renderWifi(); renderNet(); renderWan(); renderActivity(); renderStatus(); renderRouters();
+    renderBar(); renderTiles(); renderAi(); renderLists(); renderRecent(); renderDevices(); renderWifi(); renderNet(); renderWan(); renderActivity(); renderStatus(); renderRouters();
   }
 
   function pollOne(r) {
@@ -953,6 +1010,106 @@ h1 { font-size: 26px; }
     var opened = false; try { opened = Native.openApp(BKASH_PKG); } catch (e) {}
     if (opened) toast(t("isp_copied")); else { toast(t("isp_nobkash")); openLink("https://play.google.com/store/apps/details?id=" + BKASH_PKG); }
   });
+
+  // ---------- AI assistant ----------
+  var AI = { tab: "chat", log: [], busy: false };
+  function aiCfg() { try { var c = JSON.parse(localStorage.getItem("rm-ai") || "null"); return c && c.url && c.token ? c : null; } catch (e) { return null; } }
+  function knownSet() { try { return JSON.parse(localStorage.getItem("rm-known") || "[]"); } catch (e) { return []; } }
+  function isKnown(mac) { return knownSet().indexOf(mac) > -1; }
+  function hostOf(u) { return String(u || "").replace(/^https?:\/\//, "").replace(/\/.*$/, ""); }
+  var aiEnv = {
+    devices: function () { return state.devices; },
+    routers: function () { return routers().map(function (r) { return { id: r.id, name: r.name, type: r.type || "ac5", host: hostOf(r.url) }; }); },
+    api: api, poll: function () { return poll(); }, isMe: function (d) { return isMe(d); }, known: isKnown,
+    health: function () { return aiHealth(); }
+  };
+  var aiTools = AiTools.Tools(aiEnv);
+  function aiHealth() {
+    var devs = state.devices.map(function (d) { var o = Object.create(d); o.isMe = isMe(d); return o; });
+    return AiTools.analyze({ devices: devs, known: isKnown, routers: routers().map(function (c) { var r = R[c.id] || {}; return { id: c.id, name: c.name, net: r.net, wifi: r.wifi }; }) });
+  }
+  function aiState() {
+    return {
+      routers: routers().map(function (c) { var r = R[c.id] || {}, n = r.net || {}; return { name: c.name, model: c.type === "ac5" ? "Tenda AC5" : "Tenda F3", internet: n.state || "unknown", wan_type: n.type || "", link_mbps: n.linkMbps || null, wifi_security: r.wifi && r.wifi.security || "", firmware: "not exposed by this app", online_devices: (r.devices || []).filter(function (d) { return d.online; }).length, guest_devices: (r.guests || []).length }; }),
+      devices: state.devices.map(function (d) { var f = aiTools.full(d); delete f.mac_tail; f.mac_tail = d.mac.slice(-5); return f; })
+    };
+  }
+  function aiHttp(m, u, h, b) { return nativeApi.http(m, u, h, b); }
+  function aiErr(e) {
+    var m = String(e && e.message || e);
+    if (m === "ai_auth") return t("ae_auth"); if (m === "ai_busy") return t("ae_busy"); if (m === "ai_empty") return t("ae_empty");
+    if (m.indexOf("ai_backend:") === 0) return t("ae_backend", { s: m.slice(11, 60) });
+    return t("ae_net");
+  }
+  function saveLog() { try { localStorage.setItem("rm-chat", JSON.stringify(AI.log.slice(-30))); } catch (e) {} }
+  try { AI.log = JSON.parse(localStorage.getItem("rm-chat") || "[]"); } catch (e) { AI.log = []; }
+  function actionHtml(a) {
+    var res = a.result || {}, name = t("fn_" + a.name), tgt = res.device ? " · " + esc(res.device.name) : "";
+    if (/^(list_devices|top_bandwidth|network_health|blacklist_show)$/.test(a.name)) return '<div class="act ok">✓ ' + esc(name) + " · " + esc(t("ax_read")) + "</div>";
+    return res.ok && res.verified ? '<div class="act ok">✓ ' + esc(name) + tgt + " · " + esc(t("ax_ok")) + "</div>" : '<div class="act bad">✕ ' + esc(name) + tgt + " · " + esc(t("ax_fail")) + ": " + esc(res.reason || res.error || "") + "</div>";
+  }
+  function renderChat() {
+    var cfg = aiCfg(); $("#ai-setup").hidden = !!cfg;
+    var html = '<div class="msg ai">' + esc(t("ai_hello")) + "</div>" + AI.log.map(function (m) {
+      return m.role === "user" ? '<div class="msg me">' + esc(m.text) + "</div>" : '<div class="msg ai">' + (m.actions || []).map(actionHtml).join("") + (m.err ? '<span class="aerr">' + esc(m.text) + "</span>" : esc(m.text)) + "</div>";
+    }).join("") + (AI.busy ? '<div class="msg ai dots">' + esc(t("ai_think")) + "</div>" : "");
+    var box = $("#chat-log"); box.innerHTML = html; box.scrollTop = box.scrollHeight;
+    $("#chat-send").disabled = AI.busy || !cfg; $("#chat-in").disabled = !cfg;
+    $("#chat-quick").innerHTML = ["q1", "q2", "q3", "q4"].map(function (k) { return '<button type="button" class="chip" data-q="' + k + '"' + (cfg ? "" : " disabled") + ">" + esc(t(k)) + "</button>"; }).join("");
+  }
+  function send(text) {
+    var cfg = aiCfg(); text = String(text || "").trim(); if (!cfg || !text || AI.busy) return;
+    var hist = AI.log.filter(function (m) { return !m.err; }).map(function (m) { return { role: m.role, text: m.text }; });
+    AI.log.push({ role: "user", text: text }); AI.busy = true; saveLog(); renderChat();
+    var agent = AiTools.Agent(cfg, aiHttp, aiTools, aiState);
+    agent.ask(hist, text).then(function (r) {
+      AI.log.push({ role: "model", text: r.tooMany ? t("ae_many") : (r.text || t("ae_empty")), actions: r.actions, err: !!r.tooMany || !r.text });
+      var acted = r.actions.some(function (a) { return /^(block|unblock|blacklist_add|blacklist_remove|set_speed)/.test(a.name) && a.result && a.result.ok; });
+      r.actions.forEach(function (a) { if (a.result && a.result.ok && /^(block|unblock|blacklist_add|blacklist_remove|set_speed)/.test(a.name)) log("e_ai", { n: t("fn_" + a.name) + (a.result.device ? ": " + a.result.device.name : "") }); });
+      return acted ? poll() : null;
+    }).catch(function (e) { AI.log.push({ role: "model", text: aiErr(e), err: true }); }).then(function () { AI.busy = false; saveLog(); renderChat(); renderAi(); });
+  }
+  $("#chat-form").addEventListener("submit", function (e) { e.preventDefault(); var v = $("#chat-in").value; $("#chat-in").value = ""; send(v); });
+  $("#chat-quick").addEventListener("click", function (e) { var b = e.target.closest("[data-q]"); if (b) send(t(b.dataset.q)); });
+  $("#chat-clear").addEventListener("click", function () { AI.log = []; saveLog(); renderChat(); });
+  $("#ai-goset").addEventListener("click", function () { location.hash = "#settings"; });
+  document.querySelectorAll("[data-at]").forEach(function (b) { b.addEventListener("click", function () { AI.tab = b.dataset.at; renderAi(); }); });
+  function tx(i) { return t(i.key, i.v); }
+  function renderAi() {
+    document.querySelectorAll("[data-at]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.at === AI.tab ? "true" : "false"); });
+    ["chat", "health", "dev", "sec"].forEach(function (k) { $("#ai-" + k).hidden = k !== AI.tab; });
+    if (!unlocked) return;
+    if (AI.tab === "chat") renderChat();
+    var h = aiHealth(), lvl = { ok: "good", info: "", warn: "warn", bad: "bad" };
+    if (AI.tab === "health") {
+      var recs = []; h.items.forEach(function (i) { var k = "r_" + i.key.slice(2); if (t(k) && t(k) !== k && recs.indexOf(t(k)) < 0) recs.push(t(k)); });
+      $("#ai-health").innerHTML = '<div class="panel score"><h2>' + esc(t("hp_score")) + '</h2><div class="sc ' + (h.score >= 80 ? "good" : h.score >= 50 ? "warn" : "bad") + '"><b>' + h.score + "</b><span>/100 · " + esc(t(h.score >= 80 ? "ph_good" : h.score >= 50 ? "ph_fair" : "ph_poor")) + "</span></div></div>" +
+        '<div class="panel"><h2>' + esc(t("hp_insights")) + "</h2>" + h.items.map(function (i) { return '<div class="ins ' + i.level + '">' + esc(tx(i)) + "</div>"; }).join("") + "</div>" +
+        '<div class="panel"><h2>' + esc(t("hp_recs")) + "</h2><ul class=\"recs\">" + recs.map(function (r) { return "<li>" + esc(r) + "</li>"; }).join("") + "</ul>" + (aiCfg() ? '<button class="btn sm" type="button" id="ai-explain">' + esc(t("hp_ask")) + "</button>" : "") + "</div>";
+    }
+    if (AI.tab === "dev") {
+      $("#ai-dev").innerHTML = '<div class="panel"><h2>' + esc(t("di_title")) + "</h2>" + (state.devices.length ? state.devices.slice().sort(function (a, b) { return (b.online ? 1 : 0) - (a.online ? 1 : 0); }).map(function (d) {
+        var k = isKnown(d.mac), me = isMe(d), sp = d.online ? "↓ " + num(mbps(d.downKBps), 2) + " ↑ " + num(mbps(d.upKBps), 2) + " Mbps" : t("di_off");
+        return '<div class="di"><div class="di-n">' + esc(d.name) + rtag(d) + (me ? ' <span class="pill good">' + esc(t("di_me")) + "</span>" : "") + (d.blocked ? ' <span class="pill bad">' + esc(t("di_blk")) + "</span>" : "") + "<small>" + esc(d.ip) + " · " + esc(d.mac) + " · " + esc(sp) + '</small></div><button type="button" class="chip" data-known="' + esc(d.mac) + '" aria-pressed="' + (k ? "true" : "false") + '">' + esc(t(k ? "di_known" : "di_new")) + "</button></div>";
+      }).join("") : '<p class="hint">' + esc(t("di_none")) + "</p>") + '<div class="acl-actions"><button class="btn sm" type="button" id="di-all">' + esc(t("di_markall")) + '</button></div><p class="hint">' + esc(t("di_note")) + "</p></div>";
+    }
+    if (AI.tab === "sec") {
+      var sec = h.items.filter(function (i) { return /^h_(open|guest_open|unknown|blocked|net)$/.test(i.key); });
+      $("#ai-sec").innerHTML = '<div class="panel"><h2>' + esc(t("sa_title")) + "</h2>" + (sec.length ? sec.map(function (i) { return '<div class="ins ' + i.level + '">' + esc(tx(i)) + "</div>"; }).join("") : '<div class="ins ok">' + esc(t("sa_ok")) + "</div>") + '<ul class="recs"><li>' + esc(t("sa_tip1")) + "</li><li>" + esc(t("sa_tip2")) + "</li><li>" + esc(t("sa_tip3")) + '</li></ul><p class="hint">' + esc(t("sa_note")) + "</p></div>";
+    }
+  }
+  document.addEventListener("click", function (e) {
+    var k = e.target.closest("[data-known]"); if (k) { var a = knownSet(), i = a.indexOf(k.dataset.known); if (i > -1) a.splice(i, 1); else a.push(k.dataset.known); try { localStorage.setItem("rm-known", JSON.stringify(a)); } catch (x) {} renderAi(); return; }
+    if (e.target.closest("#di-all")) { var s2 = knownSet(); state.devices.forEach(function (d) { if (d.online && s2.indexOf(d.mac) < 0) s2.push(d.mac); }); try { localStorage.setItem("rm-known", JSON.stringify(s2)); } catch (x) {} renderAi(); return; }
+    if (e.target.closest("#ai-explain")) { AI.tab = "chat"; renderAi(); send(t("q2")); }
+  });
+  $("#ai-save").addEventListener("click", function () {
+    var u = $("#ai-url").value.trim(), k = $("#ai-token").value.trim();
+    if (!/^https:\/\//i.test(u) || !k) { $("#ai-msg").textContent = t("ae_net"); return; }
+    try { localStorage.setItem("rm-ai", JSON.stringify({ url: u, token: k })); } catch (e) {} $("#ai-token").value = ""; $("#ai-msg").textContent = t("ai_saved"); renderChat();
+  });
+  $("#ai-off").addEventListener("click", function () { try { localStorage.removeItem("rm-ai"); } catch (e) {} $("#ai-url").value = ""; $("#ai-token").value = ""; $("#ai-msg").textContent = t("ai_removed"); renderChat(); });
+  (function () { var c = aiCfg(); if (c) $("#ai-url").value = c.url; })();
   $("#logout").addEventListener("click", function () { api("/api/logout", {}).catch(function () {}).then(signedOut); });
 
   applyStatic();
