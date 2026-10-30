@@ -582,12 +582,26 @@ h1 { font-size: 26px; }
   };
   function loadCfg() {
     try {
-      var c = JSON.parse(localStorage.getItem("wifi-cfg") || "null");
-      if (c && !c.routers && c.url) { c.routers = [{ id: "r1", name: "Router 1", url: c.url, rpw: c.rpw }]; delete c.url; delete c.rpw; localStorage.setItem("wifi-cfg", JSON.stringify(c)); }
+      var c = JSON.parse(localStorage.getItem("wifi-cfg") || "null"), changed = false;
+      if (c && !c.routers && c.url) { c.routers = [{ id: "r1", name: "Router 1", url: c.url, rpw: c.rpw }]; delete c.url; delete c.rpw; changed = true; }
+      if (c && Array.isArray(c.routers)) {
+        c.routers.forEach(function (r) {
+          var legacy = r.rpw || "";
+          if (legacy && Native.securePut("router:" + r.id, legacy)) { delete r.rpw; changed = true; }
+          r.rpw = Native.secureGet("router:" + r.id) || legacy;
+        });
+        if (changed) { var saved = JSON.parse(JSON.stringify(c)); saved.routers.forEach(function (r) { delete r.rpw; }); localStorage.setItem("wifi-cfg", JSON.stringify(saved)); }
+      }
       return c;
     } catch (e) { return null; }
   }
-  function saveCfg() { try { localStorage.setItem("wifi-cfg", JSON.stringify(cfg)); } catch (e) {} }
+  function saveCfg() {
+    try {
+      var saved = JSON.parse(JSON.stringify(cfg));
+      saved.routers.forEach(function (r) { if (r.rpw) Native.securePut("router:" + r.id, r.rpw); delete r.rpw; });
+      localStorage.setItem("wifi-cfg", JSON.stringify(saved));
+    } catch (e) {}
+  }
   function routers() { return (cfg && cfg.routers) || []; }
   function multi() { return routers().length > 1; }
   function aclRouters() { return routers(); }
@@ -646,8 +660,8 @@ h1 { font-size: 26px; }
   }
 
   // ---- AI Network Assistant: Gemini only proposes typed allow-listed actions; this app executes them. ----
-  function aiConfig(){try{return JSON.parse(localStorage.getItem("routemate-ai")||"null")||{};}catch(e){return {};}}
-  function saveAiConfig(){var url=$("#ai-url").value.trim().replace(/\/+$/,""),token=$("#ai-token").value.trim(),msg=$("#ai-config-msg");if(!/^https:\/\//i.test(url)){msg.textContent="Use an HTTPS backend URL.";return;}if(token.length<32){msg.textContent="Access token must be at least 32 characters.";return;}localStorage.setItem("routemate-ai",JSON.stringify({url:url,token:token}));msg.textContent="Saved on this device.";$("#ai-status").textContent="AI backend configured."; }
+  function aiConfig(){try{var c=JSON.parse(localStorage.getItem("routemate-ai")||"null")||{};c.token=Native.secureGet("ai:token")||"";return c;}catch(e){return {};}}
+  function saveAiConfig(){var url=$("#ai-url").value.trim().replace(/\/+$/,""),token=$("#ai-token").value.trim(),msg=$("#ai-config-msg");if(!/^https:\/\//i.test(url)){msg.textContent="Use an HTTPS backend URL.";return;}if(token.length<32){msg.textContent="Access token must be at least 32 characters.";return;}if(!Native.securePut("ai:token",token)){msg.textContent="Could not securely store the AI token.";return;}localStorage.setItem("routemate-ai",JSON.stringify({url:url}));msg.textContent="Saved securely on this device." ;$("#ai-status").textContent="AI backend configured."; }
   function aiMessage(text,who){var box=$("#ai-chat"),el=document.createElement("div");el.className="ai-msg "+who;el.textContent=String(text||"");box.appendChild(el);box.scrollTop=box.scrollHeight;return el;}
   function aiNetwork(r){return{router:{model:r.type==="f3"?"Tenda F3":"Tenda AC5",type:r.type,firmware:"Not exposed by current client"},wifi:r.wifi||{},net:r.net||null,devices:(r.devices||[]).map(function(d){return{mac:d.mac,name:d.name,hostname:d.hostname,ip:d.ip,online:d.online,blocked:d.blocked,downKBps:d.downKBps,upKBps:d.upKBps,limitDownKBps:d.limitDownKBps,limitUpKBps:d.limitUpKBps};})};}
   function aiRefresh(){var id=curId(),r=R[id];if(!r){$("#ai-health").textContent="—";$("#ai-count").textContent="—";$("#ai-model").textContent="—";return;}var ds=r.devices||[],online=ds.filter(function(d){return d.online&&!d.blocked;});$("#ai-count").textContent=String(online.length);$("#ai-model").textContent=r.type==="f3"?"Tenda F3":"Tenda AC5";$("#ai-health").textContent=r.error?"Unavailable":r.net&&r.net.state==="ok"?"Online":r.net?r.net.state:"Unknown";var insights=[];if(r.error)insights.push(["Router data unavailable",r.error]);else{if(r.net&&r.net.state!=="ok")insights.push(["Internet connection", "Router reports: "+r.net.state]);var ranked=online.filter(function(d){return Number.isFinite(+d.downKBps)&&Number.isFinite(+d.upKBps);}).sort(function(a,b){return(b.downKBps+b.upKBps)-(a.downKBps+a.upKBps);});if(ranked.length)insights.push(["Highest current traffic sample",ranked[0].name+" · "+(ranked[0].downKBps+ranked[0].upKBps).toFixed(1)+" KB/s combined"]);if(ds.some(function(d){return d.name==="Unknown"&&d.online&&!d.blocked;}))insights.push(["Review unfamiliar devices","At least one connected device has no useful hostname or remark. This does not prove it is unauthorized."]);if(!r.net)insights.push(["Internet status","WAN diagnostics are not available in this refresh."]);}var target=$("#ai-insights");target.innerHTML=insights.length?insights.map(function(x){return '<div class="ai-insight"><b>'+esc(x[0])+'</b><small>'+esc(x[1])+'</small></div>';}).join(""):'<p class="hint">No issues detected in the available data.</p>';var rec=$("#ai-recommendations");var suggestions=[];if(ds.some(function(d){return d.name==="Unknown"&&d.online&&!d.blocked;}))suggestions.push("Check unknown device names against the devices used by your household before taking action.");if(r.net&&r.net.state!=="ok")suggestions.push("Check the WAN cable and ISP status; the router reports "+r.net.state+".");if(!ds.length)suggestions.push("Refresh the device list while connected to the router Wi-Fi.");if(!suggestions.length)suggestions.push("Keep router firmware updated using the official router administration page.");rec.innerHTML=suggestions.map(function(s){return '<div class="ai-insight">'+esc(s)+'</div>';}).join("");}
@@ -1024,7 +1038,8 @@ h1 { font-size: 26px; }
     test.login().then(function (ok) {
       if (!ok) throw new Error(t("s_rbad"));
       var salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem("wifi-cfg", JSON.stringify({ routers: [{ id: "r1", name: rname, url: url, rpw: rpw, type: rtype }], salt: salt, hash: Native.sha256(salt + a1) }));
+      if (!Native.securePut("router:r1", rpw)) throw new Error("Could not securely store the router password on this device.");
+      localStorage.setItem("wifi-cfg", JSON.stringify({ routers: [{ id: "r1", name: rname, url: url, type: rtype }], salt: salt, hash: Native.sha256(salt + a1) }));
       cfg = loadCfg(); unlocked = true; user = USER;
       $("#setup").hidden = true; $("#s-rpw").value = $("#s-apw").value = $("#s-apw2").value = ""; err.textContent = "";
       start();
@@ -1033,7 +1048,7 @@ h1 { font-size: 26px; }
   $("#reset-app").addEventListener("click", function () {
     var b = this;
     if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = t("app_settings_confirm"); setTimeout(function () { b.dataset.armed = ""; b.textContent = t("app_settings_btn"); }, 3500); return; }
-    try { localStorage.removeItem("wifi-cfg"); } catch (e) {}
+    try { var oldCfg = loadCfg(); if (oldCfg && oldCfg.routers) oldCfg.routers.forEach(function(r){ Native.secureRemove("router:" + r.id); }); Native.secureRemove("ai:token"); localStorage.removeItem("wifi-cfg"); localStorage.removeItem("routemate-ai"); } catch (e) {}
     unlocked = false; R = {}; clearInterval(timer); showFirstScreen();
   });
   showFirstScreen();
