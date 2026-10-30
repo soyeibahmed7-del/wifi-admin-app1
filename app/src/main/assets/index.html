@@ -640,7 +640,8 @@ h1 { font-size: 26px; }
   function renderRoute() {
     VIEWS.forEach(function (k) { $("#view-" + k).hidden = k !== route; var a = document.querySelector('[data-nav="' + k + '"]'); if (k === route) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     $("#page-title").textContent = t("title_" + route);
-    if (route === "assistant") { loadAiConfigUi(); aiRefresh(); }\n    if (route === "wifi" && !acl.loaded && !acl.busy && unlocked) { acl.busy = true; if (!acl.rid || (sel !== "all" && acl.rid !== sel)) acl.rid = aclDefault(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
+    if (route === "assistant") { loadAiConfigUi(); aiRefresh(); }
+    if (route === "wifi" && !acl.loaded && !acl.busy && unlocked) { acl.busy = true; if (!acl.rid || (sel !== "all" && acl.rid !== sel)) acl.rid = aclDefault(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
   }
 
   // ---- AI Network Assistant: Gemini only proposes typed allow-listed actions; this app executes them. ----
