@@ -26,6 +26,9 @@
   }
 }
 * { box-sizing: border-box; }
+body { overscroll-behavior-y: contain; }
+.ptr { position: fixed; top: 0; left: 50%; transform: translate(-50%, -60px); z-index: 50; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,.12); pointer-events: none; transition: transform .15s; }
+.ptr.show { transition: none; }
 body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.55; padding: 16px 16px 88px; }
 button, input, select { font: inherit; color: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -217,17 +220,6 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     </div></section>
 
     <section class="view" id="view-devices" hidden><div class="main">
-      <div class="panel acl">
-        <h2 data-i18n="acl_title"></h2>
-        <select id="acl-rt" class="rt-select" hidden></select>
-        <div class="chips" id="acl-mode">
-          <button class="chip" type="button" data-m="deny" aria-pressed="true" data-i18n="acl_black"></button>
-          <button class="chip" type="button" data-m="pass" aria-pressed="false" data-i18n="acl_white"></button>
-        </div>
-        <p class="hint" id="acl-hint"></p>
-        <div id="acl-list"></div>
-        <div class="acl-actions"><button class="btn primary" type="button" id="acl-save" data-i18n="acl_save"></button><span id="acl-msg" class="hint"></span></div>
-      </div>
       <div class="toolbar">
         <input class="search" id="search" type="text" data-i18n-ph="search_ph">
         <div class="chips">
@@ -241,6 +233,17 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
 
     <section class="view" id="view-wifi" hidden><div class="main">
       <div id="wifi-body"></div>
+      <div class="panel acl">
+        <h2 data-i18n="acl_title"></h2>
+        <select id="acl-rt" class="rt-select" hidden></select>
+        <div class="chips" id="acl-mode">
+          <button class="chip" type="button" data-m="deny" aria-pressed="true" data-i18n="acl_black"></button>
+          <button class="chip" type="button" data-m="pass" aria-pressed="false" data-i18n="acl_white"></button>
+        </div>
+        <p class="hint" id="acl-hint"></p>
+        <div id="acl-list"></div>
+        <div class="acl-actions"><button class="btn primary" type="button" id="acl-save" data-i18n="acl_save"></button><span id="acl-msg" class="hint"></span></div>
+      </div>
       <div class="notice" data-i18n="wifi_note"></div>
     </div></section>
 
@@ -279,6 +282,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     </section>
   </main>
 </div>
+<div class="ptr" id="ptr" aria-live="polite"></div>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="router-client.js"></script>
@@ -296,7 +300,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "Fastest right now", none_active: "No device is using the internet right now.",
       search_ph: "Search name, IP or MAC", f_all: "All", f_online: "Online", f_blocked: "Blocked", no_match: "No devices match.",
       u_now: "Now", u_none: "No internet access", limit: "Limit", no_limit: "No limit", block: "Block", unblock: "Unblock", this_pc: "This computer",
-      set_routers: "Routers", a_type: "Router model", r_readonly: "View only", add_router: "Add another router", s_name: "Router name", add_btn: "Add router", r_open: "Open page", r_remove: "Remove", r_confirm: "Tap again to remove", r_ok: "Connected", r_all: "All routers", r_added: "Router added.", r_last: "At least one router must stay.", r_dup: "That router is already added.", e_start: "Connected to {r}", net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
+      ptr_pull: "Pull down to refresh", ptr_release: "Release to refresh", ptr_loading: "Refreshing…", set_routers: "Routers", a_type: "Router model", r_readonly: "View only", add_router: "Add another router", s_name: "Router name", add_btn: "Add router", r_open: "Open page", r_remove: "Remove", r_confirm: "Tap again to remove", r_ok: "Connected", r_all: "All routers", r_added: "Router added.", r_last: "At least one router must stay.", r_dup: "That router is already added.", e_start: "Connected to {r}", net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
       wifi_title: "WiFi networks", w_24: "2.4 GHz name", w_5: "5 GHz name", w_sec: "Security", w_pc: "Connected devices",
       wifi_note: "Changing the WiFi name or password and restarting the router are not in this version yet. Use the router page for those.",
       recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left",
@@ -316,7 +320,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "এখন সবচেয়ে দ্রুত", none_active: "এখন কোনো ডিভাইস ইন্টারনেট ব্যবহার করছে না।",
       search_ph: "নাম, আইপি বা ম্যাক খুঁজুন", f_all: "সব", f_online: "অনলাইন", f_blocked: "ব্লক করা", no_match: "কোনো ডিভাইস মেলেনি।",
       u_now: "এখন", u_none: "ইন্টারনেট বন্ধ", limit: "সীমা", no_limit: "সীমা নেই", block: "ব্লক", unblock: "আনব্লক", this_pc: "এই কম্পিউটার",
-      set_routers: "রাউটারসমূহ", a_type: "রাউটারের মডেল", r_readonly: "শুধু দেখা যায়", add_router: "আরেকটি রাউটার যোগ করুন", s_name: "রাউটারের নাম", add_btn: "রাউটার যোগ করুন", r_open: "পেজ খুলুন", r_remove: "সরান", r_confirm: "সরাতে আবার চাপুন", r_ok: "যুক্ত", r_all: "সব রাউটার", r_added: "রাউটার যোগ হয়েছে।", r_last: "কমপক্ষে একটি রাউটার থাকতেই হবে।", r_dup: "এই রাউটার আগেই যোগ করা আছে।", e_start: "{r}-এর সাথে যুক্ত হয়েছে", net_connecting: "যুক্ত হচ্ছে…", nm_connecting: "রাউটার ISP-র সাথে যুক্ত হচ্ছে। এক মিনিট অপেক্ষা করুন।", net_ip_conflict: "IP সংঘর্ষ", nm_ip_conflict: "রাউটারের LAN ঠিকানা ISP নেটওয়ার্কের সাথে মিলে যাচ্ছে। রাউটারের পেজে LAN IP বদলান।", net_auth_failed: "ISP লগইন ব্যর্থ", nm_auth_failed: "ISP-র (PPPoE) ইউজারনেম বা পাসওয়ার্ড গ্রহণ হয়নি। রাউটারের পেজে মিলিয়ে দেখুন।", net_ok: "ইন্টারনেট চলছে", net_unplugged: "WAN ক্যাবল লাগানো নেই", net_no_ip: "WAN ঠিকানা নেই (ক্যাবল খোলা বা ISP-র সমস্যা)", net_no_internet: "ইন্টারনেট সংযোগ নেই", net_unknown: "ইন্টারনেটের অবস্থা জানা যায়নি", nm_ok: "রাউটার অনলাইনে আছে।", nm_unplugged: "রাউটারের WAN (ইন্টারনেট) পোর্টের ক্যাবল খুলে গেছে বা ঢিলা। ISP-র ক্যাবল দেখুন।", nm_no_ip: "রাউটারের ইন্টারনেট ঠিকানা নেই। হয় WAN ক্যাবল খোলা, নয়তো ক্যাবল লাগানো আছে কিন্তু ISP ঠিকানা দিচ্ছে না। আগে ক্যাবল দেখুন, তারপর ISP-র ডিভাইস রিস্টার্ট করুন বা ISP-কে ফোন করুন।", nm_no_internet: "রাউটারে সংযোগ আছে কিন্তু ইন্টারনেট নেই। ISP-র সমস্যা হতে পারে।", n_ip: "WAN ঠিকানা", n_gw: "গেটওয়ে", n_type: "সংযোগের ধরন", n_up: "যুক্ত আছে", n_link: "লিংকের গতি", n_code: "রাউটার কোড", e_net: "ইন্টারনেট: {s}", g_title: "গেস্ট নেটওয়ার্ক", g_devs: "গেস্ট ডিভাইস", g_none: "কোনো গেস্ট ডিভাইস যুক্ত নেই।", g_for: "যুক্ত আছে", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
+      ptr_pull: "রিফ্রেশ করতে নিচে টানুন", ptr_release: "ছেড়ে দিন, রিফ্রেশ হবে", ptr_loading: "রিফ্রেশ হচ্ছে…", set_routers: "রাউটারসমূহ", a_type: "রাউটারের মডেল", r_readonly: "শুধু দেখা যায়", add_router: "আরেকটি রাউটার যোগ করুন", s_name: "রাউটারের নাম", add_btn: "রাউটার যোগ করুন", r_open: "পেজ খুলুন", r_remove: "সরান", r_confirm: "সরাতে আবার চাপুন", r_ok: "যুক্ত", r_all: "সব রাউটার", r_added: "রাউটার যোগ হয়েছে।", r_last: "কমপক্ষে একটি রাউটার থাকতেই হবে।", r_dup: "এই রাউটার আগেই যোগ করা আছে।", e_start: "{r}-এর সাথে যুক্ত হয়েছে", net_connecting: "যুক্ত হচ্ছে…", nm_connecting: "রাউটার ISP-র সাথে যুক্ত হচ্ছে। এক মিনিট অপেক্ষা করুন।", net_ip_conflict: "IP সংঘর্ষ", nm_ip_conflict: "রাউটারের LAN ঠিকানা ISP নেটওয়ার্কের সাথে মিলে যাচ্ছে। রাউটারের পেজে LAN IP বদলান।", net_auth_failed: "ISP লগইন ব্যর্থ", nm_auth_failed: "ISP-র (PPPoE) ইউজারনেম বা পাসওয়ার্ড গ্রহণ হয়নি। রাউটারের পেজে মিলিয়ে দেখুন।", net_ok: "ইন্টারনেট চলছে", net_unplugged: "WAN ক্যাবল লাগানো নেই", net_no_ip: "WAN ঠিকানা নেই (ক্যাবল খোলা বা ISP-র সমস্যা)", net_no_internet: "ইন্টারনেট সংযোগ নেই", net_unknown: "ইন্টারনেটের অবস্থা জানা যায়নি", nm_ok: "রাউটার অনলাইনে আছে।", nm_unplugged: "রাউটারের WAN (ইন্টারনেট) পোর্টের ক্যাবল খুলে গেছে বা ঢিলা। ISP-র ক্যাবল দেখুন।", nm_no_ip: "রাউটারের ইন্টারনেট ঠিকানা নেই। হয় WAN ক্যাবল খোলা, নয়তো ক্যাবল লাগানো আছে কিন্তু ISP ঠিকানা দিচ্ছে না। আগে ক্যাবল দেখুন, তারপর ISP-র ডিভাইস রিস্টার্ট করুন বা ISP-কে ফোন করুন।", nm_no_internet: "রাউটারে সংযোগ আছে কিন্তু ইন্টারনেট নেই। ISP-র সমস্যা হতে পারে।", n_ip: "WAN ঠিকানা", n_gw: "গেটওয়ে", n_type: "সংযোগের ধরন", n_up: "যুক্ত আছে", n_link: "লিংকের গতি", n_code: "রাউটার কোড", e_net: "ইন্টারনেট: {s}", g_title: "গেস্ট নেটওয়ার্ক", g_devs: "গেস্ট ডিভাইস", g_none: "কোনো গেস্ট ডিভাইস যুক্ত নেই।", g_for: "যুক্ত আছে", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
       wifi_title: "ওয়াইফাই নেটওয়ার্ক", w_24: "২.৪ গিগাহার্টজের নাম", w_5: "৫ গিগাহার্টজের নাম", w_sec: "নিরাপত্তা", w_pc: "যুক্ত ডিভাইস",
       wifi_note: "এই অ্যাপ থেকে ওয়াইফাইয়ের নাম বা পাসওয়ার্ড বদলানো এখনো তৈরি হয়নি। সেজন্য রাউটারের পেজ ব্যবহার করুন।",
       recent: "সাম্প্রতিক ঘটনা", e_block: "{n} ব্লক করা হয়েছে", e_unblock: "{n} আনব্লক করা হয়েছে", e_limit: "{n}-এর সীমা: {l}", e_in: "{n} যুক্ত হয়েছে", e_out: "{n} বেরিয়ে গেছে",
@@ -420,7 +424,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function renderRoute() {
     VIEWS.forEach(function (k) { $("#view-" + k).hidden = k !== route; var a = document.querySelector('[data-nav="' + k + '"]'); if (k === route) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     $("#page-title").textContent = t("title_" + route);
-    if (route === "devices" && !acl.loaded && !acl.busy && unlocked) { acl.busy = true; if (!acl.rid || (sel !== "all" && acl.rid !== sel)) acl.rid = aclDefault(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
+    if (route === "wifi" && !acl.loaded && !acl.busy && unlocked) { acl.busy = true; if (!acl.rid || (sel !== "all" && acl.rid !== sel)) acl.rid = aclDefault(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
   }
   function readHash() { var h = (location.hash || "#overview").slice(1); route = VIEWS.indexOf(h) > -1 ? h : "overview"; renderRoute(); }
   window.addEventListener("hashchange", readHash);
@@ -604,7 +608,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       acl.saved = f; acl.me = f.me; acl.mode = f.mode; acl.sel = {}; f.list.forEach(function (m) { acl.sel[m.mac] = true; }); acl.loaded = true; renderAcl();
     }).catch(function (e) { $("#acl-msg").textContent = e.message; });
   }
-  function reloadAcl() { acl.loaded = false; acl.saved = null; acl.busy = true; renderAcl(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
+  function reloadAcl() { acl.loaded = false; acl.saved = null; acl.busy = true; renderAcl(); return loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
   $("#acl-rt").addEventListener("change", function () { acl.rid = this.value; reloadAcl(); });
   document.querySelectorAll("#acl-mode .chip").forEach(function (c) { c.addEventListener("click", function () { acl.mode = c.dataset.m; renderAcl(); }); });
   $("#acl-list").addEventListener("change", function (e) { var c = e.target.closest("[data-mac]"); if (c) acl.sel[c.dataset.mac] = c.checked; });
@@ -636,7 +640,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   });
   $("#rbar").addEventListener("click", function (e) {
     var c = e.target.closest("[data-r]"); if (!c) return;
-    sel = c.dataset.r; if (sel !== "all" && acl.rid !== sel && aclRouters().some(function (r) { return r.id === sel; })) { acl.rid = sel; if (route === "devices") reloadAcl(); else acl.loaded = false; }
+    sel = c.dataset.r; if (sel !== "all" && acl.rid !== sel && aclRouters().some(function (r) { return r.id === sel; })) { acl.rid = sel; if (route === "wifi") reloadAcl(); else acl.loaded = false; }
     renderAll();
   });
   $("#search").addEventListener("input", function (e) { query = e.target.value; renderDevices(); });
@@ -683,6 +687,34 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       $("#a-name").value = ""; $("#a-pw").value = ""; err.textContent = ""; toast(t("r_added")); acl.loaded = false; poll();
     }).catch(function (er) { err.textContent = er.message; }).then(function () { $("#add-btn").disabled = false; });
   });
+  // ---- pull down at the top of any page to refresh ----
+  (function () {
+    var el = $("#ptr"), y0 = null, dy = 0, busy = false, LIM = 80;
+    function top() { return (window.pageYOffset || document.documentElement.scrollTop || 0) <= 0; }
+    function place(v, txt) { el.textContent = txt; el.className = "ptr show"; el.style.transform = "translate(-50%, " + (v - 60) + "px)"; }
+    function hide() { el.className = "ptr"; el.style.transform = ""; }
+    function refresh() {
+      busy = true; place(24, t("ptr_loading"));
+      var jobs = [poll()]; if (route === "wifi" && !acl.busy) jobs.push(reloadAcl());
+      Promise.all(jobs.map(function (p) { return Promise.resolve(p).catch(function () {}); })).then(function () { busy = false; hide(); });
+    }
+    document.addEventListener("touchstart", function (e) {
+      if (busy || !unlocked || $("#app").hidden || e.touches.length !== 1 || !top() || e.target.closest("select,input,textarea")) { y0 = null; return; }
+      y0 = e.touches[0].clientY; dy = 0;
+    }, { passive: true });
+    document.addEventListener("touchmove", function (e) {
+      if (y0 === null || busy) return;
+      dy = e.touches[0].clientY - y0;
+      if (dy <= 0 || !top()) { if (dy <= 0) hide(); return; }
+      place(Math.min(dy / 2, 60), t(dy / 2 >= LIM / 2 ? "ptr_release" : "ptr_pull"));
+    }, { passive: true });
+    document.addEventListener("touchend", function () {
+      if (y0 === null || busy) return;
+      var go = dy / 2 >= LIM / 2; y0 = null; dy = 0;
+      if (go) refresh(); else hide();
+    }, { passive: true });
+    document.addEventListener("touchcancel", function () { y0 = null; hide(); }, { passive: true });
+  })();
   $("#logout").addEventListener("click", function () { api("/api/logout", {}).catch(function () {}).then(signedOut); });
 
   applyStatic();
