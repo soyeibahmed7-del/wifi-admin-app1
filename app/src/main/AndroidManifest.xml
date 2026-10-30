@@ -14,7 +14,7 @@
 
     <application
         android:allowBackup="false"
-        android:label="Soyeib Wifi"
+        android:label="RouteMate"
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"

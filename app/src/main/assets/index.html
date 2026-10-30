@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Soyeib Wifi</title>
+<title>RouteMate</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Sora:wght@600;700&display=swap">
@@ -156,6 +156,76 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   .dev .acts { justify-content: flex-start; }
   h1 { font-size: 21px; }
 }
+/* RouteMate dark theme (overrides the tokens above) */
+:root, :root:not([data-theme="light"]) {
+  --bg: #050c1c; --surface: rgba(12,30,66,.72); --surface-2: rgba(30,64,130,.35); --line: rgba(56,120,230,.38);
+  --glow1: #0a3a8a; --glow2: #0b2a6e; --glow3: #06183d;
+  --fg: #eef4ff; --muted: #8fb0e8; --accent: #1e90ff; --accent-ink: #ffffff; --accent-soft: rgba(30,144,255,.18);
+  --good: #2ee59d; --good-soft: rgba(46,229,157,.14); --warn: #f5b942; --warn-soft: rgba(245,185,66,.14); --bad: #ff5d73; --bad-soft: rgba(255,93,115,.14);
+  color-scheme: dark;
+}
+body { background: radial-gradient(700px 420px at 0% -6%, rgba(20,110,255,.45), transparent 62%), radial-gradient(600px 400px at 100% 0%, rgba(30,70,200,.35), transparent 60%), radial-gradient(800px 500px at 50% 110%, rgba(10,60,160,.4), transparent 60%), var(--bg); background-attachment: fixed; }
+.panel, .tile, .dev, .login-card { backdrop-filter: blur(6px); box-shadow: 0 0 0 1px rgba(30,144,255,.08) inset, 0 4px 24px rgba(0,40,140,.25); border-radius: 16px; }
+.brand { gap: 10px; }
+.brand img { width: 40px; height: 34px; object-fit: contain; }
+.brand b { font-family: var(--font-display); font-size: 22px; color: #fff; display: block; line-height: 1.1; }
+.brand b i { font-style: normal; color: #21a8ff; }
+.brand small { display: block; font-size: 8.5px; letter-spacing: .26em; color: #c9dcff; margin-top: 3px; }
+.btn { background: rgba(12,30,66,.6); border-radius: 12px; }
+.btn:hover { background: rgba(30,64,130,.5); }
+.btn.primary { background: linear-gradient(180deg, #2f9bff, #0b63e6); border-color: #3aa0ff; box-shadow: 0 0 18px rgba(30,144,255,.45); }
+.chip { background: rgba(12,30,66,.6); }
+.chip[aria-pressed="true"] { background: linear-gradient(180deg, #2f9bff, #0b63e6); border-color: #3aa0ff; box-shadow: 0 0 14px rgba(30,144,255,.4); }
+select, input[type="text"], input[type="password"], .search { background: rgba(8,22,52,.8); color: var(--fg); border-radius: 12px; border-color: var(--line); }
+.pill.good { border: 1px solid rgba(46,229,157,.35); box-shadow: 0 0 14px rgba(46,229,157,.2); }
+h1 { font-size: 30px; }
+.login { min-height: auto; padding-top: 4vh; }
+.lockup { text-align: center; } .lockup img { width: min(78%, 300px); height: auto; }
+.login-card { background: rgba(10,28,64,.55); }
+.lh { text-align: center; } .lh h1 { font-size: 22px; } .lh p { margin-top: 4px; }
+.secure { text-align: center; color: var(--muted); font-size: 12px; letter-spacing: .2em; margin-top: 14px; text-transform: uppercase; }
+.login-router { display: block; width: min(86%, 340px); margin: 6px auto 0; pointer-events: none; }
+.tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.tile { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; }
+.tile .k { text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--fg); font-weight: 500; }
+.tile .v { font-family: var(--font-display); font-size: 28px; line-height: 1.1; }
+.ti { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; flex: none; }
+.ti svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ti.c1 { background: rgba(30,144,255,.2); color: #46b4ff; box-shadow: 0 0 0 1px rgba(70,180,255,.5); }
+.ti.c2 { background: rgba(255,93,115,.18); color: #ff6b81; box-shadow: 0 0 0 1px rgba(255,93,115,.5); }
+.ti.c3 { background: rgba(120,80,255,.22); color: #a58cff; box-shadow: 0 0 0 1px rgba(150,120,255,.5); }
+.hero { position: relative; overflow: hidden; display: grid; grid-template-columns: 38% 1fr; gap: 8px; align-items: center; min-height: 150px; background: linear-gradient(135deg, rgba(14,48,110,.85), rgba(8,24,60,.8)); }
+.hero-img { width: 100%; height: auto; -webkit-mask-image: radial-gradient(ellipse at center, #000 55%, transparent 100%); mask-image: radial-gradient(ellipse at center, #000 55%, transparent 100%); }
+.hero-t small { color: #7cc4ff; font-size: 13px; }
+.hero .net-head b { font-size: 24px; font-family: var(--font-display); }
+.hero .hint { font-size: 13px; margin: 4px 0; }
+.net.ok .net-dot { background: var(--good); box-shadow: 0 0 10px var(--good); }
+.rd { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-top: 1px solid rgba(56,120,230,.22); }
+.rd:first-of-type { border-top: 0; }
+.rd-i { width: 42px; height: 42px; border-radius: 12px; background: rgba(30,144,255,.16); color: #46b4ff; display: grid; place-items: center; box-shadow: 0 0 0 1px rgba(70,180,255,.35); }
+.rd-i svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.rd-n { flex: 1; min-width: 0; font-weight: 600; } .rd-n small { display: block; color: #6fb2ff; font-weight: 400; font-family: var(--font-mono); font-size: 12px; }
+.rd-s { color: var(--good); font-size: 13px; }
+.wtabs { flex-wrap: wrap; }
+#view-wifi[data-tab="net"] .wb-guest, #view-wifi[data-tab="net"] .wb-acl,
+#view-wifi[data-tab="guest"] .wb-net, #view-wifi[data-tab="guest"] .wb-acl,
+#view-wifi[data-tab="acl"] .wb-net, #view-wifi[data-tab="acl"] .wb-guest { display: none !important; }
+.act-list li { grid-template-columns: 56px 1fr; }
+.ev::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-inline-end: 9px; background: #2f9bff; box-shadow: 0 0 8px currentColor; }
+.ev-e_in::before { background: var(--good); } .ev-e_out::before, .ev-e_block::before { background: var(--bad); } .ev-e_limit::before { background: var(--warn); }
+.about { display: flex; align-items: center; gap: 12px; } .about img { width: 40px; height: 34px; object-fit: contain; } .about small { display: block; color: var(--muted); }
+.isp-btns { gap: 8px; } .isp-b { min-width: 0; min-height: 0; aspect-ratio: auto; height: 64px; }
+.toast { background: #1b3a7a; color: #fff; }
+.ptr { background: #0c2150; }
+@media (max-width: 760px) {
+  .rail .brand { display: flex; }
+  .rail { margin-bottom: 4px; }
+  .nav { background: rgba(5,12,28,.94); backdrop-filter: blur(10px); border-top: 1px solid var(--line); padding: 8px 8px 10px; }
+  .nav a { border-radius: 14px; border: 1px solid transparent; }
+  .nav a[aria-current="page"] { background: rgba(30,144,255,.2); color: #fff; border-color: #2f9bff; box-shadow: 0 0 14px rgba(30,144,255,.45); }
+  body { padding-bottom: 96px; }
+}
+
 </style>
 </head>
 <body>
@@ -164,10 +234,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   <div class="login-top"><button class="btn sm" type="button" data-lang-toggle></button></div>
   <div class="login">
     <form class="login-card" id="setup-form" autocomplete="off">
-      <div class="brand">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg>
-        <span data-i18n="brand"></span>
-      </div>
+      <div class="lockup"><img src="img/lockup.png" alt="RouteMate"></div>
       <div><h1 data-i18n="setup_title"></h1><p data-i18n="setup_sub"></p></div>
       <div class="field"><label for="s-name" data-i18n="s_name"></label><input id="s-name" type="text" value="Router 1"></div>
       <div class="field"><label for="s-url" data-i18n="s_url"></label><input id="s-url" type="text" value="http://192.168.1.1" inputmode="url" autocapitalize="off"></div>
@@ -184,24 +251,20 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   <div class="login-top"><button class="btn sm" type="button" data-lang-toggle></button></div>
   <div class="login">
     <form class="login-card" id="login-form">
-      <div class="brand">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg>
-        <span data-i18n="brand"></span>
-      </div>
-      <div><h1 data-i18n="login_title"></h1><p data-i18n="login_sub"></p></div>
+      <div class="lockup"><img src="img/lockup.png" alt="RouteMate"></div>
+      <div class="lh"><h1 data-i18n="login_h"></h1><p data-i18n="login_sub"></p></div>
       <div class="field"><label for="l-pass" data-i18n="l_pass"></label><input id="l-pass" type="password" autocomplete="current-password"></div>
       <div class="login-err" id="login-err" role="alert"></div>
       <button class="btn primary" type="submit" data-i18n="login_btn"></button>
     </form>
+    <div class="secure"><span data-i18n="secure"></span></div>
   </div>
+  <img class="login-router" src="img/login-router.png" alt="">
 </section>
 
 <div class="app" id="app" hidden>
   <aside class="rail">
-    <div class="brand">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg>
-      <span data-i18n="brand"></span>
-    </div>
+    <div class="brand"><img src="img/icon.png" alt=""><div><b>Route<i>Mate</i></b><small data-i18n="tagline"></small></div></div>
     <nav class="nav">
       <a href="#overview" data-nav="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span data-i18n="nav_overview"></span></a>
       <a href="#devices" data-nav="devices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="10" rx="1.5"/><path d="M0 19h18"/><rect x="18" y="8" width="5" height="11" rx="1"/></svg><span data-i18n="nav_devices"></span></a>
@@ -224,10 +287,11 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     <section class="view" id="view-overview"><div class="main">
       <div id="nets"></div>
       <div class="tiles">
-        <div class="tile tap" data-go="online" role="link" tabindex="0"><div class="k" data-i18n="t_online"></div><div class="v" id="t-online">0</div></div>
-        <div class="tile tap" data-go="blocked" role="link" tabindex="0"><div class="k" data-i18n="t_blocked"></div><div class="v" id="t-blocked">0</div></div>
-        <div class="tile tap" data-route="wifi" role="link" tabindex="0"><div class="k" data-i18n="t_guests"></div><div class="v" id="t-guests">0</div></div>
+        <div class="tile tap" data-go="online" role="link" tabindex="0"><span class="ti c1"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></svg></span><div><div class="k" data-i18n="t_online"></div><div class="v" id="t-online">0</div></div></div>
+        <div class="tile tap" data-go="blocked" role="link" tabindex="0"><span class="ti c2"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg></span><div><div class="k" data-i18n="t_blocked"></div><div class="v" id="t-blocked">0</div></div></div>
+        <div class="tile tap" data-route="wifi" role="link" tabindex="0"><span class="ti c3"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M17 5a3.5 3.5 0 0 1 0 6M19 14.5a6.5 6.5 0 0 1 2.5 5.5"/></svg></span><div><div class="k" data-i18n="t_guests"></div><div class="v" id="t-guests">0</div></div></div>
       </div>
+      <div class="panel"><h2 data-i18n="recent_dev"></h2><div id="recent-dev"></div></div>
     </div></section>
 
     <section class="view" id="view-devices" hidden><div class="main">
@@ -242,9 +306,10 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       <div class="devices" id="devices"></div>
     </div></section>
 
-    <section class="view" id="view-wifi" hidden><div class="main">
+    <section class="view" id="view-wifi" data-tab="net" hidden><div class="main">
+      <div class="chips wtabs" id="wtabs"><button class="chip" type="button" data-wt="net" aria-pressed="true" data-i18n="wt_net"></button><button class="chip" type="button" data-wt="guest" aria-pressed="false" data-i18n="wt_guest"></button><button class="chip" type="button" data-wt="acl" aria-pressed="false" data-i18n="wt_acl"></button></div>
       <div id="wifi-body"></div>
-      <div class="panel acl">
+      <div class="panel acl wb-acl">
         <h2 data-i18n="acl_title"></h2>
         <select id="acl-rt" class="rt-select" hidden></select>
         <div class="chips" id="acl-mode">
@@ -255,8 +320,8 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
         <div id="acl-list"></div>
         <div class="acl-actions"><button class="btn primary" type="button" id="acl-save" data-i18n="acl_save"></button><span id="acl-msg" class="hint"></span></div>
       </div>
-      <div id="wans"></div>
-      <div class="notice" data-i18n="wifi_note"></div>
+      <div id="wans" class="wb-net"></div>
+      <div class="notice wb-net" data-i18n="wifi_note"></div>
     </div></section>
 
     <section class="view" id="view-settings" hidden><div class="main">
@@ -294,6 +359,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
         <h2 data-i18n="app_settings"></h2>
         <button class="btn" id="reset-app" type="button" data-i18n="app_settings_btn"></button>
       </div>
+      <div class="panel about"><img src="img/icon.png" alt=""><div><b data-i18n="about_t"></b><small data-i18n="about_s"></small></div></div>
       <div class="panel">
         <button class="btn danger" id="logout" type="button" data-i18n="logout"></button>
       </div>
@@ -312,7 +378,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
 (function () {
   var T = {
     en: {
-      brand: "WiFi Admin", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity", nav_settings: "Settings",
+      brand: "RouteMate", wt_net: "WiFi Networks", wt_guest: "Guest Network", wt_acl: "Access List", recent_dev: "Recent Devices", connected: "Connected", router_status: "Router Status", about_t: "About RouteMate", about_s: "Version 1.0 · Your router's best friend", tagline: "YOUR ROUTER'S BEST FRIEND", rd_none: "No devices online.", more: "devices", login_h: "Router Admin Login", secure: "Secure Access", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity", nav_settings: "Settings",
       title_overview: "Overview", title_devices: "Devices", title_wifi: "WiFi", title_activity: "Activity", title_settings: "Settings", set_lang: "Language", set_router: "Router", t_guests: "Guest devices",
       login_title: "Sign in", login_sub: "Enter your app password.", l_pass: "App password", login_btn: "Sign in",
       login_bad: "Wrong password.", logout: "Log out", router_page: "Open router page", guest_pill: "Guest", guest_note: "Guest devices can only be viewed.", lang_btn: "বাংলা",
@@ -322,7 +388,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "Fastest right now", none_active: "No device is using the internet right now.",
       search_ph: "Search name, IP or MAC", f_all: "All", f_online: "Online", f_blocked: "Blocked", no_match: "No devices match.",
       u_now: "Now", u_none: "No internet access", limit: "Limit", no_limit: "No limit", block: "Block", unblock: "Unblock", this_pc: "This computer",
-      ptr_pull: "Pull down to refresh", ptr_release: "Release to refresh", ptr_loading: "Refreshing…", isp_title: "ISP", isp_wa: "WhatsApp", isp_call: "Call", isp_bkash: "bKash", isp_imo: "IMO", isp_imo_copied: "Number copied. In IMO, search or paste the number.", isp_noimo: "IMO app not found. Opening its store page.", isp_copied: "Number copied. In bKash choose Send Money and paste it.", isp_nobkash: "bKash app not found. Opening its store page.", isp_nowa: "Could not open WhatsApp.", wan_title: "Internet details", via_pill: "You connect through this", grp_count: "{n} device(s)", set_routers: "Routers", a_type: "Router model", r_readonly: "View only", add_router: "Add another router", s_name: "Router name", add_btn: "Add router", r_open: "Open page", r_remove: "Remove", r_confirm: "Tap again to remove", r_ok: "Connected", r_all: "All routers", r_added: "Router added.", r_last: "At least one router must stay.", r_dup: "That router is already added.", e_start: "Connected to {r}", net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
+      ptr_pull: "Pull down to refresh", ptr_release: "Release to refresh", ptr_loading: "Refreshing…", isp_title: "ISP", isp_wa: "WhatsApp", isp_call: "Call", isp_bkash: "bKash", isp_imo: "IMO", isp_imo_copied: "Number copied. In IMO, search or paste the number.", isp_noimo: "IMO app not found. Opening its store page.", isp_copied: "Number copied. In bKash choose Send Money and paste it.", isp_nobkash: "bKash app not found. Opening its store page.", isp_nowa: "Could not open WhatsApp.", wan_title: "Internet details", via_pill: "You connect through this", grp_count: "{n} device(s)", set_routers: "Routers", a_type: "Router model", r_readonly: "View only", add_router: "Add another router", s_name: "Router name", add_btn: "Add router", r_open: "Open page", r_remove: "Remove", r_confirm: "Tap again to remove", r_ok: "Connected", r_all: "All routers", r_added: "Router added.", r_last: "At least one router must stay.", r_dup: "That router is already added.", e_start: "Connected to {r}", net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_f3: "This router has no guest network.", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
       wifi_title: "WiFi networks", w_24: "2.4 GHz name", w_5: "5 GHz name", w_sec: "Security", w_pc: "Connected devices",
       wifi_note: "Changing the WiFi name or password and restarting the router are not in this version yet. Use the router page for those.",
       recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left",
@@ -332,7 +398,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       x_blocked: "{n} blocked", x_unblocked: "{n} can use the internet again", x_limit: "{n}: {l}", updated: "Updated", confirm_block: "Tap again to block", err_prefix: "Router problem: "
     },
     bn: {
-      brand: "ওয়াইফাই অ্যাডমিন", nav_overview: "ওভারভিউ", nav_devices: "ডিভাইস", nav_wifi: "ওয়াইফাই", nav_activity: "কার্যকলাপ", nav_settings: "সেটিংস",
+      brand: "RouteMate", wt_net: "ওয়াইফাই নেটওয়ার্ক", wt_guest: "গেস্ট নেটওয়ার্ক", wt_acl: "অ্যাক্সেস তালিকা", recent_dev: "সাম্প্রতিক ডিভাইস", connected: "সংযুক্ত", router_status: "রাউটারের অবস্থা", about_t: "RouteMate সম্পর্কে", about_s: "ভার্সন ১.০ · আপনার রাউটারের বন্ধু", tagline: "আপনার রাউটারের সেরা বন্ধু", rd_none: "কোনো ডিভাইস অনলাইনে নেই।", more: "টি ডিভাইস", login_h: "রাউটার অ্যাডমিন লগইন", secure: "নিরাপদ প্রবেশ", nav_overview: "ওভারভিউ", nav_devices: "ডিভাইস", nav_wifi: "ওয়াইফাই", nav_activity: "কার্যকলাপ", nav_settings: "সেটিংস",
       title_overview: "ওভারভিউ", title_devices: "ডিভাইস", title_wifi: "ওয়াইফাই", title_activity: "কার্যকলাপ", title_settings: "সেটিংস", set_lang: "ভাষা", set_router: "রাউটার", t_guests: "গেস্ট ডিভাইস",
       login_title: "লগইন", login_sub: "অ্যাপের পাসওয়ার্ড দিন।", l_pass: "অ্যাপের পাসওয়ার্ড", login_btn: "লগইন",
       login_bad: "পাসওয়ার্ড ভুল।", logout: "লগ আউট", router_page: "রাউটারের পেজ খুলুন", guest_pill: "গেস্ট", guest_note: "গেস্ট ডিভাইস শুধু দেখা যায়।", lang_btn: "English",
@@ -342,7 +408,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "এখন সবচেয়ে দ্রুত", none_active: "এখন কোনো ডিভাইস ইন্টারনেট ব্যবহার করছে না।",
       search_ph: "নাম, আইপি বা ম্যাক খুঁজুন", f_all: "সব", f_online: "অনলাইন", f_blocked: "ব্লক করা", no_match: "কোনো ডিভাইস মেলেনি।",
       u_now: "এখন", u_none: "ইন্টারনেট বন্ধ", limit: "সীমা", no_limit: "সীমা নেই", block: "ব্লক", unblock: "আনব্লক", this_pc: "এই কম্পিউটার",
-      ptr_pull: "রিফ্রেশ করতে নিচে টানুন", ptr_release: "ছেড়ে দিন, রিফ্রেশ হবে", ptr_loading: "রিফ্রেশ হচ্ছে…", isp_title: "ISP", isp_wa: "হোয়াটসঅ্যাপ", isp_call: "কল করুন", isp_bkash: "বিকাশ", isp_imo: "ইমো", isp_imo_copied: "নম্বর কপি হয়েছে। ইমোতে সার্চ বা পেস্ট করুন।", isp_noimo: "ইমো অ্যাপ পাওয়া যায়নি। স্টোরের পেজ খুলছে।", isp_copied: "নম্বর কপি হয়েছে। বিকাশে Send Money বেছে পেস্ট করুন।", isp_nobkash: "বিকাশ অ্যাপ পাওয়া যায়নি। স্টোরের পেজ খুলছে।", isp_nowa: "হোয়াটসঅ্যাপ খোলা যায়নি।", wan_title: "ইন্টারনেটের বিস্তারিত", via_pill: "আপনি এর মধ্য দিয়ে যুক্ত", grp_count: "{n}টি ডিভাইস", set_routers: "রাউটারসমূহ", a_type: "রাউটারের মডেল", r_readonly: "শুধু দেখা যায়", add_router: "আরেকটি রাউটার যোগ করুন", s_name: "রাউটারের নাম", add_btn: "রাউটার যোগ করুন", r_open: "পেজ খুলুন", r_remove: "সরান", r_confirm: "সরাতে আবার চাপুন", r_ok: "যুক্ত", r_all: "সব রাউটার", r_added: "রাউটার যোগ হয়েছে।", r_last: "কমপক্ষে একটি রাউটার থাকতেই হবে।", r_dup: "এই রাউটার আগেই যোগ করা আছে।", e_start: "{r}-এর সাথে যুক্ত হয়েছে", net_connecting: "যুক্ত হচ্ছে…", nm_connecting: "রাউটার ISP-র সাথে যুক্ত হচ্ছে। এক মিনিট অপেক্ষা করুন।", net_ip_conflict: "IP সংঘর্ষ", nm_ip_conflict: "রাউটারের LAN ঠিকানা ISP নেটওয়ার্কের সাথে মিলে যাচ্ছে। রাউটারের পেজে LAN IP বদলান।", net_auth_failed: "ISP লগইন ব্যর্থ", nm_auth_failed: "ISP-র (PPPoE) ইউজারনেম বা পাসওয়ার্ড গ্রহণ হয়নি। রাউটারের পেজে মিলিয়ে দেখুন।", net_ok: "ইন্টারনেট চলছে", net_unplugged: "WAN ক্যাবল লাগানো নেই", net_no_ip: "WAN ঠিকানা নেই (ক্যাবল খোলা বা ISP-র সমস্যা)", net_no_internet: "ইন্টারনেট সংযোগ নেই", net_unknown: "ইন্টারনেটের অবস্থা জানা যায়নি", nm_ok: "রাউটার অনলাইনে আছে।", nm_unplugged: "রাউটারের WAN (ইন্টারনেট) পোর্টের ক্যাবল খুলে গেছে বা ঢিলা। ISP-র ক্যাবল দেখুন।", nm_no_ip: "রাউটারের ইন্টারনেট ঠিকানা নেই। হয় WAN ক্যাবল খোলা, নয়তো ক্যাবল লাগানো আছে কিন্তু ISP ঠিকানা দিচ্ছে না। আগে ক্যাবল দেখুন, তারপর ISP-র ডিভাইস রিস্টার্ট করুন বা ISP-কে ফোন করুন।", nm_no_internet: "রাউটারে সংযোগ আছে কিন্তু ইন্টারনেট নেই। ISP-র সমস্যা হতে পারে।", n_ip: "WAN ঠিকানা", n_gw: "গেটওয়ে", n_type: "সংযোগের ধরন", n_up: "যুক্ত আছে", n_link: "লিংকের গতি", n_code: "রাউটার কোড", e_net: "ইন্টারনেট: {s}", g_title: "গেস্ট নেটওয়ার্ক", g_devs: "গেস্ট ডিভাইস", g_none: "কোনো গেস্ট ডিভাইস যুক্ত নেই।", g_for: "যুক্ত আছে", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
+      ptr_pull: "রিফ্রেশ করতে নিচে টানুন", ptr_release: "ছেড়ে দিন, রিফ্রেশ হবে", ptr_loading: "রিফ্রেশ হচ্ছে…", isp_title: "ISP", isp_wa: "হোয়াটসঅ্যাপ", isp_call: "কল করুন", isp_bkash: "বিকাশ", isp_imo: "ইমো", isp_imo_copied: "নম্বর কপি হয়েছে। ইমোতে সার্চ বা পেস্ট করুন।", isp_noimo: "ইমো অ্যাপ পাওয়া যায়নি। স্টোরের পেজ খুলছে।", isp_copied: "নম্বর কপি হয়েছে। বিকাশে Send Money বেছে পেস্ট করুন।", isp_nobkash: "বিকাশ অ্যাপ পাওয়া যায়নি। স্টোরের পেজ খুলছে।", isp_nowa: "হোয়াটসঅ্যাপ খোলা যায়নি।", wan_title: "ইন্টারনেটের বিস্তারিত", via_pill: "আপনি এর মধ্য দিয়ে যুক্ত", grp_count: "{n}টি ডিভাইস", set_routers: "রাউটারসমূহ", a_type: "রাউটারের মডেল", r_readonly: "শুধু দেখা যায়", add_router: "আরেকটি রাউটার যোগ করুন", s_name: "রাউটারের নাম", add_btn: "রাউটার যোগ করুন", r_open: "পেজ খুলুন", r_remove: "সরান", r_confirm: "সরাতে আবার চাপুন", r_ok: "যুক্ত", r_all: "সব রাউটার", r_added: "রাউটার যোগ হয়েছে।", r_last: "কমপক্ষে একটি রাউটার থাকতেই হবে।", r_dup: "এই রাউটার আগেই যোগ করা আছে।", e_start: "{r}-এর সাথে যুক্ত হয়েছে", net_connecting: "যুক্ত হচ্ছে…", nm_connecting: "রাউটার ISP-র সাথে যুক্ত হচ্ছে। এক মিনিট অপেক্ষা করুন।", net_ip_conflict: "IP সংঘর্ষ", nm_ip_conflict: "রাউটারের LAN ঠিকানা ISP নেটওয়ার্কের সাথে মিলে যাচ্ছে। রাউটারের পেজে LAN IP বদলান।", net_auth_failed: "ISP লগইন ব্যর্থ", nm_auth_failed: "ISP-র (PPPoE) ইউজারনেম বা পাসওয়ার্ড গ্রহণ হয়নি। রাউটারের পেজে মিলিয়ে দেখুন।", net_ok: "ইন্টারনেট চলছে", net_unplugged: "WAN ক্যাবল লাগানো নেই", net_no_ip: "WAN ঠিকানা নেই (ক্যাবল খোলা বা ISP-র সমস্যা)", net_no_internet: "ইন্টারনেট সংযোগ নেই", net_unknown: "ইন্টারনেটের অবস্থা জানা যায়নি", nm_ok: "রাউটার অনলাইনে আছে।", nm_unplugged: "রাউটারের WAN (ইন্টারনেট) পোর্টের ক্যাবল খুলে গেছে বা ঢিলা। ISP-র ক্যাবল দেখুন।", nm_no_ip: "রাউটারের ইন্টারনেট ঠিকানা নেই। হয় WAN ক্যাবল খোলা, নয়তো ক্যাবল লাগানো আছে কিন্তু ISP ঠিকানা দিচ্ছে না। আগে ক্যাবল দেখুন, তারপর ISP-র ডিভাইস রিস্টার্ট করুন বা ISP-কে ফোন করুন।", nm_no_internet: "রাউটারে সংযোগ আছে কিন্তু ইন্টারনেট নেই। ISP-র সমস্যা হতে পারে।", n_ip: "WAN ঠিকানা", n_gw: "গেটওয়ে", n_type: "সংযোগের ধরন", n_up: "যুক্ত আছে", n_link: "লিংকের গতি", n_code: "রাউটার কোড", e_net: "ইন্টারনেট: {s}", g_title: "গেস্ট নেটওয়ার্ক", g_f3: "এই রাউটারে গেস্ট নেটওয়ার্ক নেই।", g_devs: "গেস্ট ডিভাইস", g_none: "কোনো গেস্ট ডিভাইস যুক্ত নেই।", g_for: "যুক্ত আছে", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
       wifi_title: "ওয়াইফাই নেটওয়ার্ক", w_24: "২.৪ গিগাহার্টজের নাম", w_5: "৫ গিগাহার্টজের নাম", w_sec: "নিরাপত্তা", w_pc: "যুক্ত ডিভাইস",
       wifi_note: "এই অ্যাপ থেকে ওয়াইফাইয়ের নাম বা পাসওয়ার্ড বদলানো এখনো তৈরি হয়নি। সেজন্য রাউটারের পেজ ব্যবহার করুন।",
       recent: "সাম্প্রতিক ঘটনা", e_block: "{n} ব্লক করা হয়েছে", e_unblock: "{n} আনব্লক করা হয়েছে", e_limit: "{n}-এর সীমা: {l}", e_in: "{n} যুক্ত হয়েছে", e_out: "{n} বেরিয়ে গেছে",
@@ -524,9 +590,9 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       return '<div class="acl-row"><span>' + esc(d.name) + " · " + d.band + "<small>" + esc(d.ip) + " · " + d.mac + "</small><small>↓ " + num(mbps(d.downKBps), 2) + " ↑ " + num(mbps(d.upKBps), 2) + " Mbps · " + esc(t("g_for")) + " " + dur + "</small></span></div>";
     }).join("") : '<p class="hint">' + esc(t("g_none")) + "</p>";
     var has5 = !!(w.ssid5 || "").trim();
-    return '<div class="panel"><h2>' + esc(t("wifi_title")) + (multi() ? " · " + esc(r.name) : "") + "</h2><dl class=\"kv\">" + kv("w_24", (w.ssid24 || "").trim()) + (has5 ? kv("w_5", (w.ssid5 || "").trim()) : "") + kv("w_sec", w.security || "") +
+    return '<div class="panel wb-net"><h2>' + esc(t("wifi_title")) + (multi() ? " · " + esc(r.name) : "") + "</h2><dl class=\"kv\">" + kv("w_24", (w.ssid24 || "").trim()) + (has5 ? kv("w_5", (w.ssid5 || "").trim()) : "") + kv("w_sec", w.security || "") +
       kv("w_pc", num(r.devices.filter(function (d) { return d.online; }).length)) + "</dl></div>" +
-      (r.type === "f3" ? "" : '<div class="panel"><h2>' + esc(t("g_title")) + (multi() ? " · " + esc(r.name) : "") + "</h2><dl class=\"kv\">" + kv("g_state", g.on24 || g.on5 ? t("g_on") : t("g_off")) + kv("w_24", (g.ssid24 || "").trim()) + (has5 ? kv("w_5", (g.ssid5 || "").trim()) : "") +
+      (r.type === "f3" ? '<div class="panel wb-guest"><p class="hint">' + esc(t("g_f3")) + "</p></div>" : '<div class="panel wb-guest"><h2>' + esc(t("g_title")) + (multi() ? " · " + esc(r.name) : "") + "</h2><dl class=\"kv\">" + kv("g_state", g.on24 || g.on5 ? t("g_on") : t("g_off")) + kv("w_24", (g.ssid24 || "").trim()) + (has5 ? kv("w_5", (g.ssid5 || "").trim()) : "") +
       kv("w_sec", g.open ? t("g_open") : t("g_pw")) + kv("g_speed", g.speedKBps > 0 && g.speedKBps < 38528 ? num(g.speedKBps * 8 / 1000, 2) + " Mbps" : t("g_nolim")) + '</dl><h2 style="margin-top:16px">' + esc(t("g_devs")) + "</h2>" + gd + "</div>");
   }
   function renderWifi() {
@@ -534,7 +600,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     $("#wifi-body").innerHTML = ids.map(function (id) { return wifiBlock(R[id]); }).join("");
   }
   function renderActivity() {
-    $("#activity").innerHTML = events.slice(0, 40).map(function (e) { return "<li><time>" + e.time + "</time><span>" + esc(t(e.key, e.v)) + "</span></li>"; }).join("");
+    $("#activity").innerHTML = events.slice(0, 40).map(function (e) { return "<li><time>" + e.time + '</time><span class="ev ev-' + e.key + '">' + esc(t(e.key, e.v)) + "</span></li>"; }).join("");
   }
   function renderStatus() {
     var p = $("#conn"); p.className = "pill " + (failing ? "bad" : "good"); p.textContent = failing ? t("reconnecting") : t("live");
@@ -543,9 +609,14 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function renderNet() {
     var ids = Object.keys(R).filter(function (id) { return (sel === "all" || id === sel) && R[id].net; });
     $("#nets").innerHTML = ids.map(function (id) {
-      var r = R[id], net = r.net;
-      return '<div class="panel net ' + (net.state === "ok" ? "ok" : "bad") + '"><div class="net-head"><span class="net-dot"></span><b>' + (multi() ? esc(r.name) + " · " : "") + esc(t("net_" + net.state)) + '</b></div><p class="hint">' + esc(t("nm_" + net.state)) + "</p></div>";
+      var r = R[id], net = r.net, c = routers().filter(function (x) { return x.id === id; })[0] || {};
+      var host = (c.url || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+      return '<div class="panel net hero ' + (net.state === "ok" ? "ok" : "bad") + '"><img class="hero-img" src="img/router.png" alt=""><div class="hero-t"><small>' + esc(t("router_status")) + (multi() ? " · " + esc(r.name) : "") + '</small><div class="net-head"><span class="net-dot"></span><b>' + esc(t("net_" + net.state)) + '</b></div><p class="hint">' + esc(t("nm_" + net.state)) + '</p><small class="mono">Tenda ' + (c.type === "ac5" ? "AC5" : "F3") + " · " + esc(host) + "</small></div></div>";
     }).join("");
+  }
+  function renderRecent() {
+    var ds = state.devices.filter(inSel).filter(function (d) { return d.online && !d.blocked; }).slice(0, 5);
+    $("#recent-dev").innerHTML = ds.length ? ds.map(function (d) { return '<div class="rd"><span class="rd-i"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/></svg></span><div class="rd-n">' + esc(d.name) + "<small>" + esc(d.ip) + '</small></div><span class="rd-s">' + esc(t("connected")) + "</span></div>"; }).join("") : '<p class="hint">' + esc(t("rd_none")) + "</p>";
   }
   // The technical details (WAN address, gateway, link speed...) live on the WiFi page.
   function renderWan() {
@@ -573,7 +644,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   var aclSig = "";
   function renderAll() {
     var sg = aclDevices().map(function (d) { return d.mac + d.name; }).join("|") + "|" + routers().length; if (sg !== aclSig) { aclSig = sg; renderAcl(); }
-    renderBar(); renderTiles(); renderDevices(); renderWifi(); renderNet(); renderWan(); renderActivity(); renderStatus(); renderRouters();
+    renderBar(); renderTiles(); renderRecent(); renderDevices(); renderWifi(); renderNet(); renderWan(); renderActivity(); renderStatus(); renderRouters();
   }
 
   function pollOne(r) {
@@ -648,6 +719,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
     }).catch(function (e) { $("#acl-msg").textContent = e.message; });
   }
   function reloadAcl() { acl.loaded = false; acl.saved = null; acl.busy = true; renderAcl(); return loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
+  document.querySelectorAll("[data-wt]").forEach(function (b) { b.addEventListener("click", function () { $("#view-wifi").dataset.tab = b.dataset.wt; document.querySelectorAll("[data-wt]").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); }); }); });
   $("#acl-rt").addEventListener("change", function () { acl.rid = this.value; reloadAcl(); });
   document.querySelectorAll("#acl-mode .chip").forEach(function (c) { c.addEventListener("click", function () { acl.mode = c.dataset.m; renderAcl(); }); });
   $("#acl-list").addEventListener("change", function (e) { var c = e.target.closest("[data-mac]"); if (c) acl.sel[c.dataset.mac] = c.checked; });
