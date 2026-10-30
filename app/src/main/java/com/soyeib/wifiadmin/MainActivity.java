@@ -10,6 +10,9 @@ import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.content.SharedPreferences;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import android.util.Base64;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
@@ -24,6 +27,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.List;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -31,6 +35,10 @@ import java.util.concurrent.Executors;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import java.security.KeyStore;
 
 /**
  * The whole app is a web page (assets/index.html). A web page is not allowed to call the router directly,
@@ -206,6 +214,66 @@ public class MainActivity extends Activity {
             } catch (Exception e) {
                 return false;
             }
+        }
+
+
+        // Secrets are encrypted at rest with an AES-256 key held by Android Keystore.
+        private SecretKey secretKey() throws Exception {
+            KeyStore ks = KeyStore.getInstance("AndroidKeyStore");
+            ks.load(null);
+            String alias = "routemate.ai.router.secrets.v1";
+            if (ks.containsAlias(alias)) return (SecretKey) ks.getKey(alias, null);
+            KeyGenerator kg = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+            kg.init(new KeyGenParameterSpec.Builder(alias,
+                    KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+                    .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+                    .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setRandomizedEncryptionRequired(true)
+                    .setKeySize(256)
+                    .build());
+            return kg.generateKey();
+        }
+
+        @JavascriptInterface
+        public boolean securePut(String name, String value) {
+            try {
+                if (name == null || !name.matches("[a-zA-Z0-9:_-]{1,100}")) return false;
+                Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+                cipher.init(Cipher.ENCRYPT_MODE, secretKey());
+                byte[] iv = cipher.getIV();
+                byte[] encrypted = cipher.doFinal((value == null ? "" : value).getBytes(StandardCharsets.UTF_8));
+                byte[] packed = new byte[iv.length + encrypted.length];
+                System.arraycopy(iv, 0, packed, 0, iv.length);
+                System.arraycopy(encrypted, 0, packed, iv.length, encrypted.length);
+                getSharedPreferences("routemate_secrets", MODE_PRIVATE).edit()
+                        .putString(name, Base64.encodeToString(packed, Base64.NO_WRAP)).apply();
+                return true;
+            } catch (Exception e) { return false; }
+        }
+
+        @JavascriptInterface
+        public String secureGet(String name) {
+            try {
+                if (name == null || !name.matches("[a-zA-Z0-9:_-]{1,100}")) return "";
+                String encoded = getSharedPreferences("routemate_secrets", MODE_PRIVATE).getString(name, "");
+                if (encoded.isEmpty()) return "";
+                byte[] packed = Base64.decode(encoded, Base64.DEFAULT);
+                if (packed.length <= 12) return "";
+                byte[] iv = Arrays.copyOfRange(packed, 0, 12);
+                byte[] encrypted = Arrays.copyOfRange(packed, 12, packed.length);
+                Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+                cipher.init(Cipher.DECRYPT_MODE, secretKey(), new GCMParameterSpec(128, iv));
+                return new String(cipher.doFinal(encrypted), StandardCharsets.UTF_8);
+            } catch (Exception e) { return ""; }
+        }
+
+        @JavascriptInterface
+        public boolean secureRemove(String name) {
+            try {
+                if (name == null || !name.matches("[a-zA-Z0-9:_-]{1,100}")) return false;
+                getSharedPreferences("routemate_secrets", MODE_PRIVATE).edit().remove(name).apply();
+                return true;
+            } catch (Exception e) { return false; }
         }
 
         @JavascriptInterface
