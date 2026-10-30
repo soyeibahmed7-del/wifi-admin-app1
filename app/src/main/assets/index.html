@@ -598,9 +598,10 @@ h1 { font-size: 26px; }
   function saveCfg() {
     try {
       var saved = JSON.parse(JSON.stringify(cfg));
-      saved.routers.forEach(function (r) { if (r.rpw) Native.securePut("router:" + r.id, r.rpw); delete r.rpw; });
+      saved.routers.forEach(function (r) { if (r.rpw && !Native.securePut("router:" + r.id, r.rpw)) throw new Error("Secure storage unavailable"); delete r.rpw; });
       localStorage.setItem("wifi-cfg", JSON.stringify(saved));
-    } catch (e) {}
+      return true;
+    } catch (e) { return false; }
   }
   function routers() { return (cfg && cfg.routers) || []; }
   function multi() { return routers().length > 1; }
@@ -962,7 +963,7 @@ h1 { font-size: 26px; }
     $("#add-btn").disabled = true; err.textContent = t("s_checking");
     var type = $("#a-type").value, test = new RouterClient({ url: url, password: pw, native: nativeApi, type: type });
     test.snapshot().then(function () {
-      cfg.routers.push({ id: "r" + Date.now().toString(36), name: name, url: url, rpw: pw, type: type }); saveCfg(); buildClients();
+      cfg.routers.push({ id: "r" + Date.now().toString(36), name: name, url: url, rpw: pw, type: type }); if (!saveCfg()) throw new Error("Could not securely save the router password."); buildClients();
       $("#a-name").value = ""; $("#a-pw").value = ""; err.textContent = ""; toast(t("r_added")); acl.loaded = false; poll();
     }).catch(function (er) { err.textContent = er.message; }).then(function () { $("#add-btn").disabled = false; });
   });
