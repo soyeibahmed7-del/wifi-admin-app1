@@ -1,7 +1,7 @@
 name: Build APK
 on:
   push:
-    branches: [main]
+    branches: [main, feature/ai-network-assistant]
   workflow_dispatch:
 permissions:
   contents: write
@@ -23,6 +23,7 @@ jobs:
           name: wifi-admin-apk
           path: app/build/outputs/apk/debug/app-debug.apk
       - name: Publish release
+        if: github.ref == 'refs/heads/main'
         env: { GH_TOKEN: '${{ github.token }}' }
         run: |
           cp app/build/outputs/apk/debug/app-debug.apk WiFi-Admin.apk
