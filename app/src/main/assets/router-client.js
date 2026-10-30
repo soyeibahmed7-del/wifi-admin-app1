@@ -71,7 +71,7 @@
     }).then(function (r) { return JSON.parse(self._decrypt(r.text)); });
   };
   P._post = function (path, form) {
-    var self = this, body = this.n.aes(true, form);
+    var self = this, body = this.type === "f3" ? form : this.n.aes(true, form); // the F3 sends and receives plain text
     function send() { return self._req(path, "POST", { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" }, body); }
     return send().then(function (r) {
       if (!self._needsLogin(r)) return r;
@@ -81,26 +81,32 @@
       });
     }).then(function (r) {
       if (r.status >= 300) throw new Error("Router rejected the change (HTTP " + r.status + ")");
-      return self._decrypt(r.text);
+      var out = self._decrypt(r.text);
+      if (self.type === "f3") { try { var j = JSON.parse(out); if (j && j.errCode != null && String(j.errCode) !== "0") throw new Error("Router refused the change (error " + j.errCode + ")"); } catch (e) { if (/Router refused/.test(e.message)) throw e; } }
+      return out;
     });
   };
 
   // Tenda F3 (main router): recorded replies are plain JSON from the same /goform/getQos. Only reading is supported for now.
   P._snapshotF3 = function () {
     return this._getJson("/goform/getQos?random=" + Math.random() + "&modules=" + encodeURIComponent("localhost,onlineList,blackList,macFilter")).then(function (q) {
-      var devices = (q.onlineList || []).map(function (d) {
-        return { mac: String(d.qosListMac).toLowerCase(), name: d.qosListRemark || d.qosListHostname || "Unknown", hostname: d.qosListHostname, ip: d.qosListIP,
-          band: d.qosListConnectType === "wires" ? "wired" : "wifi", online: true, blocked: false, readonly: true,
-          downKBps: +d.qosListDownSpeed || 0, upKBps: +d.qosListUpSpeed || 0, limitDownKBps: 0, limitUpKBps: 0, seconds: 0 };
-      });
+      var myIp = (q.localhost || {}).localhost || "";
+      function dev(d, blocked, online) {
+        return { mac: String(d.qosListMac).toLowerCase(), name: d.qosListRemark || d.qosListHostname || "Unknown", hostname: d.qosListHostname || "", remark: d.qosListRemark || "",
+          ip: d.qosListIP || "", band: d.qosListConnectType === "wires" ? "wired" : d.qosListConnectType === "wifi" ? "wifi" : "", online: online, blocked: blocked,
+          downKBps: +d.qosListDownSpeed || 0, upKBps: +d.qosListUpSpeed || 0, limitDownKBps: +d.qosListDownLimit || 0, limitUpKBps: +d.qosListUpLimit || 0, seconds: 0 };
+      }
+      var devices = (q.onlineList || []).map(function (d) { return dev(d, d.qosListAccess === "false", true); });
       var seen = {}; devices.forEach(function (d) { seen[d.mac] = d; });
       (q.blackList || []).forEach(function (b) {
-        var mac = String(b.qosListMac || b.mac || "").toLowerCase(); if (!mac) return;
-        if (seen[mac]) seen[mac].blocked = true;
-        else devices.push({ mac: mac, name: b.qosListRemark || b.remark || b.qosListHostname || b.hostname || "Unknown", ip: "", band: "", online: false, blocked: true, readonly: true, downKBps: 0, upKBps: 0, limitDownKBps: 0, limitUpKBps: 0, seconds: 0 });
+        if (!b.qosListMac) return;
+        var mac = String(b.qosListMac).toLowerCase();
+        if (seen[mac]) seen[mac].blocked = true; else devices.push(dev(b, true, false));
       });
+      // The F3 does not tell us the phone's MAC, only its address. The device with that address is the one we reach the F3 through.
+      var me = devices.filter(function (d) { return myIp && d.ip === myIp; })[0];
       var mf = q.macFilter || {};
-      return { me: { localhostMAC: "" }, devices: devices, guests: [], wifi: {}, filterMode: mf.curFilterMode === "pass" ? "pass" : "deny" };
+      return { me: { localhostMAC: me ? me.mac : "" }, devices: devices, guests: [], wifi: {}, filterMode: mf.curFilterMode === "pass" ? "pass" : "deny" };
     });
   };
 
@@ -154,7 +160,20 @@
   function row(d, allowed, zero) {
     return [d.hostname || "Unknown", d.name || "", d.mac.toUpperCase(), zero ? 0 : (d.limitDownKBps || 0), zero ? 0 : (d.limitUpKBps || 0), allowed].join("\t");
   }
+  // Tenda F3: POST /goform/setQos with module1=onlineList&qosList=rows. Row = hostname TAB remark TAB MAC TAB upLimit TAB downLimit TAB true|false.
+  // Blocked = 0, 0, false. No limit = 38528. (Recorded page logic; the F3 allows at most 10 blocked devices.)
+  function capF3(x) { return !(x > 0) || x >= UNLIMITED ? UNLIMITED : Math.round(x); }
+  P._applyF3 = function (devices) {
+    var blockedN = devices.filter(function (d) { return d.blocked; }).length;
+    if (blockedN > 10) return Promise.reject(new Error("The F3 can block at most 10 devices."));
+    var rows = devices.map(function (d) {
+      return d.blocked ? [d.hostname || "", d.remark || "", d.mac, 0, 0, "false"].join("\t")
+        : [d.hostname || "", d.remark || "", d.mac, capF3(d.limitUpKBps), capF3(d.limitDownKBps), "true"].join("\t");
+    });
+    return this._post("/goform/setQos", "module1=onlineList&qosList=" + encodeURIComponent(rows.join("\n")));
+  };
   P.apply = function (devices) {
+    if (this.type === "f3") return this._applyF3(devices);
     var online = devices.filter(function (d) { return d.online && !d.blocked; }).map(function (d) { return row(d, true); });
     var blocked = devices.filter(function (d) { return d.blocked; }).map(function (d) { return row(d, false, true); });
     var form = "module1=onlineList&onlineList=" + encodeURIComponent(online.join("\n")) + "&module2=macFilter&macFilterList=" + encodeURIComponent(blocked.join("\n"));
@@ -183,41 +202,52 @@
   // Recorded from the router's Advanced page: GET /goform/getNAT, and POST /goform/setNAT which always carries ALL the
   // modules of that page, so we read the current values first and send them back unchanged. Only module6 changes.
   var NAT_MODULES = "staticIPList,IPTV,portList,ddns,dmz,upnp,lanCfg,macFilter,localhost,wifiRelay,onlineList,ping,productInfo";
-  P._nat = function () { return this._getJson("/goform/getNAT?random=" + Math.random() + "&modules=" + encodeURIComponent(NAT_MODULES)); };
+  var NAT_MODULES_F3 = "wifiRelay,staticIPList,portList,macFilter,localhost,onlineList,ddns,dmz,ping,upnp,lanCfg,apIsolation";
+  P._nat = function () { return this._getJson("/goform/getNAT?random=" + Math.random() + "&modules=" + encodeURIComponent(this.type === "f3" ? NAT_MODULES_F3 : NAT_MODULES)); };
   function natView(n) {
     var mf = n.macFilter || {}, names = {};
     (n.onlineList || []).forEach(function (o) { names[String(o.qosListMac).toLowerCase()] = { hostname: o.qosListHostname, remark: o.qosListRemark }; });
-    var list = (mf.macFilterList || []).map(function (m) { return { mac: String(m.mac).toLowerCase(), hostname: m.hostname || "Unknown", remark: m.remark || "" }; });
+    var list = (mf.macFilterList || []).map(function (m) { return { mac: String(m.mac).toLowerCase(), hostname: m.hostname == null ? "Unknown" : m.hostname, remark: m.remark || "" }; });
     return { mode: mf.curFilterMode === "pass" ? "pass" : "deny", list: list, me: ((n.localhost || {}).localhostMAC || "").toLowerCase(), names: names };
   }
-  var NO_F3 = "Whitelist/blacklist is not supported for the Tenda F3 yet.";
-  P.getFilter = function () { if (this.type === "f3") return Promise.reject(new Error(NO_F3)); return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
+  P.getFilter = function () { return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
+  // The save command always carries every setting of that page, so we send back what the router told us, changing only the MAC filter.
+  // AC5 order: module6=macFilter ... ; F3 order (recorded): module8=macFilter, module6=ping, module7=apIsolation.
+  function natForm(n, f3, mode, rows) {
+    var dd = n.ddns || {}, e = encodeURIComponent, F = function (x) { return e(x == null ? "" : String(x)); };
+    var list = e(rows.length ? rows.join("\n") + "\n" : "");
+    var common = "&module1=staticIPList&staticList=&module2=portList&portList=" +
+      "&module3=dmz&dmzEn=" + F((n.dmz || {}).dmzEn) + "&dmzHostIP=" + F((n.dmz || {}).dmzHostIP) +
+      "&module4=ddns&ddnsEn=" + F(dd.ddnsEn) + "&ddnsServiceName=" + F(dd.ddnsServiceName) + "&ddnsServer=" + F(dd.ddnsServer) + "&ddnsUser=" + F(dd.ddnsUser) + "&ddnsPwd=" + F(dd.ddnsPwd) +
+      "&module5=upnp&upnpEn=" + F((n.upnp || {}).upnpEn);
+    if (f3) return "module8=macFilter&filterMode=" + mode + "&macFilterList=" + list + common + "&module6=ping&pingEn=" + F((n.ping || {}).pingEn) + "&module7=apIsolation&apIsolationEn=" + F((n.apIsolation || {}).apIsolationEn);
+    return "module6=macFilter&filterMode=" + mode + "&macFilterList=" + list + "&module8=ping&pingEn=" + F((n.ping || {}).pingEn) + common + "&module7=IPTV&IPTVEn=false&VLANArea=&VLANID=&VLANSelect=";
+  }
   P.setFilter = function (mode, macs) {
-    var self = this;
-    if (this.type === "f3") return Promise.reject(new Error(NO_F3));
+    var self = this, f3 = this.type === "f3";
     if (mode !== "pass" && mode !== "deny") return Promise.reject(new Error("Unknown mode"));
     return this._nat().then(function (n) {
       var v = natView(n), want = [];
       (macs || []).forEach(function (m) { m = String(m).toLowerCase(); if (want.indexOf(m) < 0) want.push(m); });
       if (mode === "pass") { if (v.me && want.indexOf(v.me) < 0) want.push(v.me); }
-      else if (v.me && want.indexOf(v.me) > -1) throw new Error("This is the phone running the app. Blacklisting it would lock you out.");
+      else if (v.me && want.indexOf(v.me) > -1) throw new Error("This is the device the app reaches the router through. Blacklisting it would lock you out.");
       if (mode === "pass" && !want.length) throw new Error("The whitelist is empty. Everyone would be blocked.");
-      if ((n.staticIPList || []).length || (n.portList || []).length || (n.IPTV && String(n.IPTV.IPTVEn) === "true"))
+      if ((n.staticIPList || []).length || (n.portList || []).length || (!f3 && n.IPTV && String(n.IPTV.IPTVEn) === "true"))
         throw new Error("Your router has static IP, port forwarding or IPTV settings. This app cannot rewrite them safely, so it stopped.");
       var known = {}; v.list.forEach(function (m) { known[m.mac] = m; });
-      var rows = want.map(function (m) {
-        var k = known[m] || v.names[m] || {};
-        return [k.hostname || "Unknown", k.remark || "", m].join("\t");
+      function rowFor(m) { var k = known[m] || v.names[m] || {}; return [k.hostname == null ? "Unknown" : k.hostname, k.remark || "", m].join("\t"); }
+      var rows = want.map(rowFor), before = { mode: v.mode, rows: v.list.map(function (m) { return rowFor(m.mac); }) };
+      return self._post("/goform/setNAT", natForm(n, f3, mode, rows)).then(function (r) {
+        if (!f3) return r;
+        // The F3 format was not recorded for a non-empty list, so check the result and put the old list back if it does not match.
+        return self._nat().then(function (n2) {
+          var v2 = natView(n2), got = v2.list.map(function (m) { return m.mac; }).sort().join(","), exp = want.slice().sort().join(",");
+          if (v2.mode === mode && got === exp) return r;
+          return self._post("/goform/setNAT", natForm(n, f3, before.mode, before.rows)).then(function () {
+            throw new Error("The F3 did not accept that change. The previous list was restored. Please check it on the router page.");
+          });
+        });
       });
-      var dd = n.ddns || {}, e = encodeURIComponent, F = function (x) { return e(x == null ? "" : String(x)); };
-      var form = "module6=macFilter&filterMode=" + mode + "&macFilterList=" + e(rows.length ? rows.join("\n") + "\n" : "") +
-        "&module8=ping&pingEn=" + F((n.ping || {}).pingEn) +
-        "&module1=staticIPList&staticList=&module2=portList&portList=" +
-        "&module3=dmz&dmzEn=" + F((n.dmz || {}).dmzEn) + "&dmzHostIP=" + F((n.dmz || {}).dmzHostIP) +
-        "&module4=ddns&ddnsEn=" + F(dd.ddnsEn) + "&ddnsServiceName=" + F(dd.ddnsServiceName) + "&ddnsServer=" + F(dd.ddnsServer) + "&ddnsUser=" + F(dd.ddnsUser) + "&ddnsPwd=" + F(dd.ddnsPwd) +
-        "&module5=upnp&upnpEn=" + F((n.upnp || {}).upnpEn) +
-        "&module7=IPTV&IPTVEn=false&VLANArea=&VLANID=&VLANSelect=";
-      return self._post("/goform/setNAT", form);
     });
   };
 

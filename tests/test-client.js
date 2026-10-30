@@ -134,22 +134,68 @@ server.listen(0, async () => {
     state.code = "99999999"; state.wanIp = "0.0.0.0"; assert.strictEqual((await rc.internet()).state, "no_ip");
     console.log("internet status states: ok");
     // ---- Tenda F3 (plain JSON, no AES) ----
+    const F = {
+      ip: "192.168.0.101", mode: "pass", breakNat: false, lastQos: null, lastNat: null,
+      online: [
+        { h: "Tenda", r: "Soyeib ", ip: "192.168.0.101", t: "wires", mac: "80:9f:e4:42:71:69", down: "1.00", up: "16.00", lim: "4931584.00" },
+        { h: "Unknown", r: "আশরাফ ", ip: "192.168.0.107", t: "wifi", mac: "6a:b3:cb:5a:55:62", down: "3754.00", up: "45.00", lim: "4931584.00" },
+        { h: "V2556", r: "আমির", ip: "192.168.0.105", t: "wifi", mac: "c2:11:21:1f:e7:95", down: "0.00", up: "0.00", lim: "4931584.00" }],
+      black: [],
+      allow: [{ hostname: "Tenda", remark: "Soyeib ", mac: "80:9f:e4:42:71:69" }, { hostname: "", remark: "আশরাফ ", mac: "6a:b3:cb:5a:55:62" }, { hostname: "V2556", remark: "আমির", mac: "c2:11:21:1f:e7:95" }],
+    };
+    const q = (d) => ({ qosListHostname: d.h, qosListRemark: d.r, qosListIP: d.ip, qosListConnectType: d.t, qosListMac: d.mac, qosListDownSpeed: d.down, qosListUpSpeed: d.up, qosListDownLimit: d.lim, qosListUpLimit: d.lim, qosListAccess: "true" });
     const f3 = http.createServer((req, res) => {
-      res.writeHead(200);
-      if (req.url.startsWith("/goform/getQos")) return res.end(JSON.stringify({ localhost: { localhost: "192.168.0.101" }, onlineList: [
-        { qosListHostname: "Tenda", qosListRemark: "Soyeib ", qosListIP: "192.168.0.101", qosListConnectType: "wires", qosListMac: "80:9f:e4:42:71:69", qosListDownSpeed: "1.00", qosListUpSpeed: "16.00" },
-        { qosListHostname: "Unknown", qosListRemark: "আশরাফ ", qosListIP: "192.168.0.107", qosListConnectType: "wifi", qosListMac: "6A:B3:CB:5A:55:62", qosListDownSpeed: "3754.00", qosListUpSpeed: "45.00" }], blackList: [], macFilter: { curFilterMode: "pass" } }));
-      if (req.url.startsWith("/goform/getStatus")) return res.end(JSON.stringify({ internetStatus: { wanConnectStatus: "13103061" }, systemInfo: { wanType: "pppoe", statusWanIP: "10.15.5.59", wanConnectTime: "84951" }, wanAdvCfg: { wanSpeedCurrent: "100" } }));
-      res.end("{}");
+      let body = ""; req.on("data", (c) => (body += c)); req.on("end", () => {
+        res.writeHead(200);
+        if (req.url.startsWith("/goform/getQos")) return res.end(JSON.stringify({ localhost: { localhost: F.ip, lanMask: "255.255.255.0" }, onlineList: F.online.map(q), blackList: F.black.map(q), macFilter: { curFilterMode: F.mode } }));
+        if (req.url.startsWith("/goform/setQos")) {
+          const form = new URLSearchParams(body); F.lastQos = form;
+          const rows = form.get("qosList").split("\n").map((r) => r.split("\t")), all = F.online.concat(F.black);
+          F.online = []; F.black = [];
+          rows.forEach((r) => { const d = Object.assign({}, all.find((x) => x.mac === r[2])); d.lim = r[5] === "false" ? "0.00" : (+r[4]).toFixed(2); (r[5] === "false" ? F.black : F.online).push(d); });
+          return res.end('{"errCode":"0"}');
+        }
+        if (req.url.startsWith("/goform/getStatus")) return res.end(JSON.stringify({ internetStatus: { wanConnectStatus: "13103061" }, systemInfo: { wanType: "pppoe", statusWanIP: "10.15.5.59", wanConnectTime: "84951" }, wanAdvCfg: { wanSpeedCurrent: "100" } }));
+        if (req.url.startsWith("/goform/getNAT")) return res.end(JSON.stringify({ staticIPList: [], portList: [], macFilter: { curFilterMode: F.mode, macFilterList: F.allow.map((m) => Object.assign({ filterMode: "pass" }, m)) },
+          localhost: { localhostMAC: "80:9F:E4:42:71:69", localhost: F.ip }, onlineList: F.online.map(q), ddns: { ddnsEn: "false", ddnsServiceName: "oray.com", ddnsUser: "", ddnsPwd: "pw1", ddnsServer: "" }, dmz: { dmzEn: "false", dmzHostIP: "" }, ping: { pingEn: "false" }, upnp: { upnpEn: "false" }, apIsolation: { apIsolationEn: "false" } }));
+        if (req.url.startsWith("/goform/setNAT")) {
+          const form = new URLSearchParams(body); F.lastNat = form;
+          if (!F.breakNat) { F.mode = form.get("filterMode"); F.allow = (form.get("macFilterList") || "").split("\n").filter(Boolean).map((r) => { const c = r.split("\t"); return { hostname: c[0], remark: c[1], mac: c[2] }; }); }
+          else if (form.get("filterMode") === "pass") F.allow = []; // simulate the router mangling the list
+          return res.end('{"errCode":"0"}');
+        }
+        res.end("{}");
+      });
     });
     await new Promise((r) => f3.listen(0, r));
     const r2 = new RouterClient({ url: "http://127.0.0.1:" + f3.address().port, password: "x", native, type: "f3" });
-    const s2 = await r2.snapshot();
-    assert.strictEqual(s2.devices.length, 2); assert.strictEqual(s2.devices[1].name.trim(), "আশরাফ"); assert.ok(s2.devices.every((d) => d.readonly));
+    let s2 = await r2.snapshot();
+    assert.strictEqual(s2.devices.length, 3); assert.strictEqual(s2.devices[1].name.trim(), "আশরাফ"); assert.strictEqual(s2.me.localhostMAC, "80:9f:e4:42:71:69");
     assert.strictEqual(s2.devices[1].mac, "6a:b3:cb:5a:55:62"); assert.strictEqual(s2.devices[1].downKBps, 3754);
     const i2 = await r2.internet(); assert.strictEqual(i2.state, "ok"); assert.strictEqual(i2.type, "pppoe");
+    await assert.rejects(() => r2.setBlocked("80:9f:e4:42:71:69", true), /lock you out/);
+    await r2.setBlocked("c2:11:21:1f:e7:95", true);
+    assert.ok(F.lastQos.get("qosList").includes("V2556\tআমির\tc2:11:21:1f:e7:95\t0\t0\tfalse"));
+    assert.ok(F.lastQos.get("qosList").includes("Tenda\tSoyeib \t80:9f:e4:42:71:69\t38528\t38528\ttrue"));
+    s2 = await r2.snapshot(); assert.ok(s2.devices.find((d) => d.mac === "c2:11:21:1f:e7:95").blocked);
+    await r2.setBlocked("c2:11:21:1f:e7:95", false);
+    await r2.setLimit("6a:b3:cb:5a:55:62", 250);
+    assert.ok(F.lastQos.get("qosList").includes("আশরাফ \t6a:b3:cb:5a:55:62\t250\t250\ttrue"));
+    await r2.setLimit("6a:b3:cb:5a:55:62", 0);
+    assert.ok(F.lastQos.get("qosList").includes("আশরাফ \t6a:b3:cb:5a:55:62\t38528\t38528\ttrue"));
+    console.log("F3 block / unblock / limit: ok");
+    f = await r2.getFilter(); assert.strictEqual(f.mode, "pass"); assert.strictEqual(f.list.length, 3);
+    await r2.setFilter("pass", ["6a:b3:cb:5a:55:62", "c2:11:21:1f:e7:95", "aa:aa:aa:aa:aa:aa"]);
+    f = await r2.getFilter(); assert.strictEqual(f.list.length, 4); // + own gateway device kept
+    assert.ok(F.lastNat.toString().startsWith("module8=macFilter&filterMode=pass&macFilterList="));
+    assert.strictEqual(F.lastNat.get("ddnsPwd"), "pw1"); assert.strictEqual(F.lastNat.get("apIsolationEn"), "false");
+    assert.ok(F.allow.some((m) => m.hostname === "" && m.remark === "আশরাফ ")); // names (even empty hostnames) kept as they were
+    await assert.rejects(() => r2.setFilter("deny", ["80:9f:e4:42:71:69"]), /lock you out/);
+    F.breakNat = true; const before = JSON.stringify(F.allow);
+    await assert.rejects(() => r2.setFilter("pass", ["6a:b3:cb:5a:55:62"]), /previous list was restored/);
+    F.breakNat = false;
+    console.log("F3 whitelist/blacklist (with safety restore): ok");
     f3.close();
-    console.log("Tenda F3 read-only list + internet status: ok");
     console.log("ALL TESTS PASSED");
   } catch (e) { console.error("FAILED:", e); process.exitCode = 1; }
   server.close();

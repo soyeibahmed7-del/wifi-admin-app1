@@ -72,6 +72,9 @@ h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.3; margin
 .isp-b:active { background: var(--accent-soft); }
 .isp-b img { width: 44px; height: 44px; border-radius: 10px; }
 .isp-fb { font-size: 12px; text-align: center; line-height: 1.2; }
+.grp { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 6px 2px 8px; font-size: 16px; }
+.grp small { color: var(--muted); font-size: 13px; font-weight: 400; }
+.grp-box { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
 .net-head { display: flex; align-items: center; gap: 10px; font-size: 17px; }
 .net-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--muted); flex: none; }
 .net.ok .net-dot { background: var(--good); } .net.bad .net-dot { background: var(--bad); } .net.bad { border-color: var(--bad); }
@@ -315,7 +318,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "Fastest right now", none_active: "No device is using the internet right now.",
       search_ph: "Search name, IP or MAC", f_all: "All", f_online: "Online", f_blocked: "Blocked", no_match: "No devices match.",
       u_now: "Now", u_none: "No internet access", limit: "Limit", no_limit: "No limit", block: "Block", unblock: "Unblock", this_pc: "This computer",
-      ptr_pull: "Pull down to refresh", ptr_release: "Release to refresh", ptr_loading: "Refreshing…", isp_title: "ISP", isp_wa: "WhatsApp", isp_call: "Call", isp_bkash: "bKash", isp_imo: "IMO", isp_imo_copied: "Number copied. In IMO, search or paste the number.", isp_noimo: "IMO app not found. Opening its store page.", isp_copied: "Number copied. In bKash choose Send Money and paste it.", isp_nobkash: "bKash app not found. Opening its store page.", isp_nowa: "Could not open WhatsApp.", set_routers: "Routers", a_type: "Router model", r_readonly: "View only", add_router: "Add another router", s_name: "Router name", add_btn: "Add router", r_open: "Open page", r_remove: "Remove", r_confirm: "Tap again to remove", r_ok: "Connected", r_all: "All routers", r_added: "Router added.", r_last: "At least one router must stay.", r_dup: "That router is already added.", e_start: "Connected to {r}", net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
+      ptr_pull: "Pull down to refresh", ptr_release: "Release to refresh", ptr_loading: "Refreshing…", isp_title: "ISP", isp_wa: "WhatsApp", isp_call: "Call", isp_bkash: "bKash", isp_imo: "IMO", isp_imo_copied: "Number copied. In IMO, search or paste the number.", isp_noimo: "IMO app not found. Opening its store page.", isp_copied: "Number copied. In bKash choose Send Money and paste it.", isp_nobkash: "bKash app not found. Opening its store page.", isp_nowa: "Could not open WhatsApp.", via_pill: "You connect through this", grp_count: "{n} device(s)", set_routers: "Routers", a_type: "Router model", r_readonly: "View only", add_router: "Add another router", s_name: "Router name", add_btn: "Add router", r_open: "Open page", r_remove: "Remove", r_confirm: "Tap again to remove", r_ok: "Connected", r_all: "All routers", r_added: "Router added.", r_last: "At least one router must stay.", r_dup: "That router is already added.", e_start: "Connected to {r}", net_connecting: "Connecting…", nm_connecting: "The router is connecting to your ISP. Wait a minute.", net_ip_conflict: "IP conflict", nm_ip_conflict: "The router's LAN address conflicts with the ISP network. Change the LAN IP on the router page.", net_auth_failed: "ISP login failed", nm_auth_failed: "The ISP (PPPoE) user name or password was rejected. Check them on the router page.", net_ok: "Internet is working", net_unplugged: "WAN cable unplugged", net_no_ip: "No WAN address (cable unplugged or ISP problem)", net_no_internet: "No internet service", net_unknown: "Internet status unknown", nm_ok: "The router is online.", nm_unplugged: "The cable in the router's WAN (internet) port is unplugged or loose. Check the cable from your ISP.", nm_no_ip: "The router has no internet address. Either the WAN cable is unplugged, or the cable is connected but the ISP gives no address. Check the cable first, then restart the ISP device or call your ISP.", nm_no_internet: "The router has a connection but no internet. The ISP may have a problem.", n_ip: "WAN address", n_gw: "Gateway", n_type: "Connection", n_up: "Connected for", n_link: "Link speed", n_code: "Router code", e_net: "Internet: {s}", g_title: "Guest network", g_devs: "Guest devices", g_none: "No guest devices connected.", g_for: "connected for", g_state: "Status", g_on: "On", g_off: "Off", g_open: "No password", g_pw: "Password protected", g_speed: "Speed limit", g_nolim: "No limit",
       wifi_title: "WiFi networks", w_24: "2.4 GHz name", w_5: "5 GHz name", w_sec: "Security", w_pc: "Connected devices",
       wifi_note: "Changing the WiFi name or password and restarting the router are not in this version yet. Use the router page for those.",
       recent: "Recent events", e_block: "{n} was blocked", e_unblock: "{n} was unblocked", e_limit: "Limit for {n}: {l}", e_in: "{n} joined", e_out: "{n} left",
@@ -335,7 +338,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       top_title: "এখন সবচেয়ে দ্রুত", none_active: "এখন কোনো ডিভাইস ইন্টারনেট ব্যবহার করছে না।",
       search_ph: "নাম, আইপি বা ম্যাক খুঁজুন", f_all: "সব", f_online: "অনলাইন", f_blocked: "ব্লক করা", no_match: "কোনো ডিভাইস মেলেনি।",
       u_now: "এখন", u_none: "ইন্টারনেট বন্ধ", limit: "সীমা", no_limit: "সীমা নেই", block: "ব্লক", unblock: "আনব্লক", this_pc: "এই কম্পিউটার",
-      ptr_pull: "রিফ্রেশ করতে নিচে টানুন", ptr_release: "ছেড়ে দিন, রিফ্রেশ হবে", ptr_loading: "রিফ্রেশ হচ্ছে…", isp_title: "ISP", isp_wa: "হোয়াটসঅ্যাপ", isp_call: "কল করুন", isp_bkash: "বিকাশ", isp_imo: "ইমো", isp_imo_copied: "নম্বর কপি হয়েছে। ইমোতে সার্চ বা পেস্ট করুন।", isp_noimo: "ইমো অ্যাপ পাওয়া যায়নি। স্টোরের পেজ খুলছে।", isp_copied: "নম্বর কপি হয়েছে। বিকাশে Send Money বেছে পেস্ট করুন।", isp_nobkash: "বিকাশ অ্যাপ পাওয়া যায়নি। স্টোরের পেজ খুলছে।", isp_nowa: "হোয়াটসঅ্যাপ খোলা যায়নি।", set_routers: "রাউটারসমূহ", a_type: "রাউটারের মডেল", r_readonly: "শুধু দেখা যায়", add_router: "আরেকটি রাউটার যোগ করুন", s_name: "রাউটারের নাম", add_btn: "রাউটার যোগ করুন", r_open: "পেজ খুলুন", r_remove: "সরান", r_confirm: "সরাতে আবার চাপুন", r_ok: "যুক্ত", r_all: "সব রাউটার", r_added: "রাউটার যোগ হয়েছে।", r_last: "কমপক্ষে একটি রাউটার থাকতেই হবে।", r_dup: "এই রাউটার আগেই যোগ করা আছে।", e_start: "{r}-এর সাথে যুক্ত হয়েছে", net_connecting: "যুক্ত হচ্ছে…", nm_connecting: "রাউটার ISP-র সাথে যুক্ত হচ্ছে। এক মিনিট অপেক্ষা করুন।", net_ip_conflict: "IP সংঘর্ষ", nm_ip_conflict: "রাউটারের LAN ঠিকানা ISP নেটওয়ার্কের সাথে মিলে যাচ্ছে। রাউটারের পেজে LAN IP বদলান।", net_auth_failed: "ISP লগইন ব্যর্থ", nm_auth_failed: "ISP-র (PPPoE) ইউজারনেম বা পাসওয়ার্ড গ্রহণ হয়নি। রাউটারের পেজে মিলিয়ে দেখুন।", net_ok: "ইন্টারনেট চলছে", net_unplugged: "WAN ক্যাবল লাগানো নেই", net_no_ip: "WAN ঠিকানা নেই (ক্যাবল খোলা বা ISP-র সমস্যা)", net_no_internet: "ইন্টারনেট সংযোগ নেই", net_unknown: "ইন্টারনেটের অবস্থা জানা যায়নি", nm_ok: "রাউটার অনলাইনে আছে।", nm_unplugged: "রাউটারের WAN (ইন্টারনেট) পোর্টের ক্যাবল খুলে গেছে বা ঢিলা। ISP-র ক্যাবল দেখুন।", nm_no_ip: "রাউটারের ইন্টারনেট ঠিকানা নেই। হয় WAN ক্যাবল খোলা, নয়তো ক্যাবল লাগানো আছে কিন্তু ISP ঠিকানা দিচ্ছে না। আগে ক্যাবল দেখুন, তারপর ISP-র ডিভাইস রিস্টার্ট করুন বা ISP-কে ফোন করুন।", nm_no_internet: "রাউটারে সংযোগ আছে কিন্তু ইন্টারনেট নেই। ISP-র সমস্যা হতে পারে।", n_ip: "WAN ঠিকানা", n_gw: "গেটওয়ে", n_type: "সংযোগের ধরন", n_up: "যুক্ত আছে", n_link: "লিংকের গতি", n_code: "রাউটার কোড", e_net: "ইন্টারনেট: {s}", g_title: "গেস্ট নেটওয়ার্ক", g_devs: "গেস্ট ডিভাইস", g_none: "কোনো গেস্ট ডিভাইস যুক্ত নেই।", g_for: "যুক্ত আছে", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
+      ptr_pull: "রিফ্রেশ করতে নিচে টানুন", ptr_release: "ছেড়ে দিন, রিফ্রেশ হবে", ptr_loading: "রিফ্রেশ হচ্ছে…", isp_title: "ISP", isp_wa: "হোয়াটসঅ্যাপ", isp_call: "কল করুন", isp_bkash: "বিকাশ", isp_imo: "ইমো", isp_imo_copied: "নম্বর কপি হয়েছে। ইমোতে সার্চ বা পেস্ট করুন।", isp_noimo: "ইমো অ্যাপ পাওয়া যায়নি। স্টোরের পেজ খুলছে।", isp_copied: "নম্বর কপি হয়েছে। বিকাশে Send Money বেছে পেস্ট করুন।", isp_nobkash: "বিকাশ অ্যাপ পাওয়া যায়নি। স্টোরের পেজ খুলছে।", isp_nowa: "হোয়াটসঅ্যাপ খোলা যায়নি।", via_pill: "আপনি এর মধ্য দিয়ে যুক্ত", grp_count: "{n}টি ডিভাইস", set_routers: "রাউটারসমূহ", a_type: "রাউটারের মডেল", r_readonly: "শুধু দেখা যায়", add_router: "আরেকটি রাউটার যোগ করুন", s_name: "রাউটারের নাম", add_btn: "রাউটার যোগ করুন", r_open: "পেজ খুলুন", r_remove: "সরান", r_confirm: "সরাতে আবার চাপুন", r_ok: "যুক্ত", r_all: "সব রাউটার", r_added: "রাউটার যোগ হয়েছে।", r_last: "কমপক্ষে একটি রাউটার থাকতেই হবে।", r_dup: "এই রাউটার আগেই যোগ করা আছে।", e_start: "{r}-এর সাথে যুক্ত হয়েছে", net_connecting: "যুক্ত হচ্ছে…", nm_connecting: "রাউটার ISP-র সাথে যুক্ত হচ্ছে। এক মিনিট অপেক্ষা করুন।", net_ip_conflict: "IP সংঘর্ষ", nm_ip_conflict: "রাউটারের LAN ঠিকানা ISP নেটওয়ার্কের সাথে মিলে যাচ্ছে। রাউটারের পেজে LAN IP বদলান।", net_auth_failed: "ISP লগইন ব্যর্থ", nm_auth_failed: "ISP-র (PPPoE) ইউজারনেম বা পাসওয়ার্ড গ্রহণ হয়নি। রাউটারের পেজে মিলিয়ে দেখুন।", net_ok: "ইন্টারনেট চলছে", net_unplugged: "WAN ক্যাবল লাগানো নেই", net_no_ip: "WAN ঠিকানা নেই (ক্যাবল খোলা বা ISP-র সমস্যা)", net_no_internet: "ইন্টারনেট সংযোগ নেই", net_unknown: "ইন্টারনেটের অবস্থা জানা যায়নি", nm_ok: "রাউটার অনলাইনে আছে।", nm_unplugged: "রাউটারের WAN (ইন্টারনেট) পোর্টের ক্যাবল খুলে গেছে বা ঢিলা। ISP-র ক্যাবল দেখুন।", nm_no_ip: "রাউটারের ইন্টারনেট ঠিকানা নেই। হয় WAN ক্যাবল খোলা, নয়তো ক্যাবল লাগানো আছে কিন্তু ISP ঠিকানা দিচ্ছে না। আগে ক্যাবল দেখুন, তারপর ISP-র ডিভাইস রিস্টার্ট করুন বা ISP-কে ফোন করুন।", nm_no_internet: "রাউটারে সংযোগ আছে কিন্তু ইন্টারনেট নেই। ISP-র সমস্যা হতে পারে।", n_ip: "WAN ঠিকানা", n_gw: "গেটওয়ে", n_type: "সংযোগের ধরন", n_up: "যুক্ত আছে", n_link: "লিংকের গতি", n_code: "রাউটার কোড", e_net: "ইন্টারনেট: {s}", g_title: "গেস্ট নেটওয়ার্ক", g_devs: "গেস্ট ডিভাইস", g_none: "কোনো গেস্ট ডিভাইস যুক্ত নেই।", g_for: "যুক্ত আছে", g_state: "অবস্থা", g_on: "চালু", g_off: "বন্ধ", g_open: "পাসওয়ার্ড নেই", g_pw: "পাসওয়ার্ড দেওয়া", g_speed: "গতির সীমা", g_nolim: "সীমা নেই",
       wifi_title: "ওয়াইফাই নেটওয়ার্ক", w_24: "২.৪ গিগাহার্টজের নাম", w_5: "৫ গিগাহার্টজের নাম", w_sec: "নিরাপত্তা", w_pc: "যুক্ত ডিভাইস",
       wifi_note: "এই অ্যাপ থেকে ওয়াইফাইয়ের নাম বা পাসওয়ার্ড বদলানো এখনো তৈরি হয়নি। সেজন্য রাউটারের পেজ ব্যবহার করুন।",
       recent: "সাম্প্রতিক ঘটনা", e_block: "{n} ব্লক করা হয়েছে", e_unblock: "{n} আনব্লক করা হয়েছে", e_limit: "{n}-এর সীমা: {l}", e_in: "{n} যুক্ত হয়েছে", e_out: "{n} বেরিয়ে গেছে",
@@ -389,7 +392,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function saveCfg() { try { localStorage.setItem("wifi-cfg", JSON.stringify(cfg)); } catch (e) {} }
   function routers() { return (cfg && cfg.routers) || []; }
   function multi() { return routers().length > 1; }
-  function aclRouters() { return routers().filter(function (r) { return r.type !== "f3"; }); }
+  function aclRouters() { return routers(); }
   function aclDefault() { var a = aclRouters(), c = curId(); return a.some(function (r) { return r.id === c; }) ? c : (a[0] && a[0].id) || ""; }
   function curId() { return sel !== "all" && R[sel] ? sel : (routers()[0] && routers()[0].id); }
   function inSel(x) { return sel === "all" || x.rid === sel; }
@@ -421,7 +424,7 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   function nowStr() { var d = new Date(); return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
   function log(key, v) { events.unshift({ time: nowStr(), key: key, v: v }); renderActivity(); }
   function mbps(kbps) { return kbps * 8 / 1000; }
-  function limitMbps(d) { return d.limitDownKBps >= UNLIMITED || d.limitDownKBps <= 0 ? 0 : Math.round(d.limitDownKBps * 8 / 1000); }
+  function limitMbps(d) { return !(d.limitDownKBps > 0) || d.limitDownKBps >= UNLIMITED ? 0 : Math.round(d.limitDownKBps * 8 / 1000); }
   function isMe(d) { var r = R[d.rid], m = r && r.me && r.me.localhostMAC; return !!m && m.toLowerCase() === d.mac; }
   function rtag(x) { return multi() ? ' <span class="pill rt">' + esc(x.rname) + "</span>" : ""; }
 
@@ -472,21 +475,11 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
   }
   function renderDevices() {
     var q = query.toLowerCase();
-    var list = state.devices.filter(function (d) {
-      if (!inSel(d)) return false;
-      if (filter === "online" && !(d.online && !d.blocked)) return false;
-      if (filter === "blocked" && !d.blocked) return false;
-      return !q || (d.name + " " + d.ip + " " + d.mac).toLowerCase().indexOf(q) > -1;
-    });
-    var guests = filter === "blocked" ? [] : state.guests.filter(function (g) { return inSel(g) && (!q || (g.name + " " + g.ip + " " + g.mac).toLowerCase().indexOf(q) > -1); });
-    var gHtml = guests.map(function (g) {
-      return '<div class="dev"><div class="ico">' + ICON + '</div><div><div class="name">' + esc(g.name) + ' <span class="pill warn">' + t("guest_pill") + '</span> <span class="pill good">' + t("online") + "</span>" + rtag(g) + '</div><div class="meta">' + esc(g.ip) + " · " + g.mac + " · " + g.band + '</div></div>' +
-        '<div class="use">' + t("u_now") + " <b>↓ " + num(mbps(g.downKBps), 2) + " ↑ " + num(mbps(g.upKBps), 2) + " Mbps</b></div></div>";
-    }).join("");
-    if (!list.length && !guests.length) { $("#devices").innerHTML = '<div class="panel">' + t("no_match") + "</div>"; return; }
-    $("#devices").innerHTML = list.map(function (d) {
+    function hit(x) { return !q || (x.name + " " + x.ip + " " + x.mac).toLowerCase().indexOf(q) > -1; }
+    function card(d) {
       var st = d.blocked ? '<span class="pill bad">' + t("blocked") + "</span>" : d.online ? '<span class="pill good">' + t("online") + "</span>" : '<span class="pill warn">' + t("offline") + "</span>";
-      var me = isMe(d) ? ' <span class="pill warn">' + t("this_pc") + "</span>" : "";
+      var f3 = R[d.rid] && R[d.rid].type === "f3";
+      var me = isMe(d) ? ' <span class="pill warn">' + t(f3 ? "via_pill" : "this_pc") + "</span>" : "";
       var cur = limitMbps(d), key = d.rid + "|" + d.mac;
       var opts = LIMITS.map(function (l) { return '<option value="' + l + '"' + (cur === l ? " selected" : "") + ">" + (l ? num(l) + " Mbps" : t("no_limit")) + "</option>"; }).join("");
       if (LIMITS.indexOf(cur) < 0) opts += '<option value="' + cur + '" selected>' + num(cur) + " Mbps</option>";
@@ -496,10 +489,29 @@ select, input[type="text"], input[type="password"] { border: 1px solid var(--lin
       var acts = d.readonly ? '<div class="acts"><span class="pill warn">' + t("r_readonly") + "</span></div>" :
         '<div class="acts"><label>' + t("limit") + ' <select data-limit="' + key + '"' + (d.blocked || !d.online || busy ? " disabled" : "") + ">" + opts + "</select></label>" + blockBtn + "</div>";
       return '<div class="dev' + (d.blocked ? " blocked" : "") + '"><div class="ico">' + (isMe(d) ? PC : ICON) + "</div>" +
-        '<div><div class="name">' + esc(d.name) + " " + st + me + rtag(d) + '</div><div class="meta">' + (d.ip ? d.ip + " · " : "") + d.mac + (d.band ? " · " + d.band.replace("wifi_", "") : "") + "</div></div>" +
-        '<div class="use">' + use + "</div>" +
-        acts + "</div>";
-    }).join("") + gHtml;
+        '<div><div class="name">' + esc(d.name) + " " + st + me + '</div><div class="meta">' + (d.ip ? d.ip + " · " : "") + d.mac + (d.band ? " · " + d.band.replace("wifi_", "") : "") + "</div></div>" +
+        '<div class="use">' + use + "</div>" + acts + "</div>";
+    }
+    function gcard(g) {
+      return '<div class="dev"><div class="ico">' + ICON + '</div><div><div class="name">' + esc(g.name) + ' <span class="pill warn">' + t("guest_pill") + '</span> <span class="pill good">' + t("online") + '</span></div><div class="meta">' + esc(g.ip) + " · " + g.mac + " · " + g.band + '</div></div>' +
+        '<div class="use">' + t("u_now") + " <b>↓ " + num(mbps(g.downKBps), 2) + " ↑ " + num(mbps(g.upKBps), 2) + " Mbps</b></div></div>";
+    }
+    var html = "", total = 0;
+    routers().forEach(function (r) {
+      if (!inSel({ rid: r.id })) return;
+      var o = R[r.id] || {};
+      var list = (o.devices || []).filter(function (d) {
+        if (filter === "online" && !(d.online && !d.blocked)) return false;
+        if (filter === "blocked" && !d.blocked) return false;
+        return hit(d);
+      });
+      var guests = filter === "blocked" ? [] : (o.guests || []).filter(hit);
+      total += list.length + guests.length;
+      if (!list.length && !guests.length && !o.error) return;
+      var head = multi() ? '<h3 class="grp"><span>' + esc(r.name) + "</span><small>" + (o.error ? esc(o.error) : t("grp_count", { n: list.length + guests.length })) + "</small></h3>" : "";
+      html += '<section class="grp-box">' + head + list.map(card).join("") + guests.map(gcard).join("") + "</section>";
+    });
+    $("#devices").innerHTML = total || html ? html : '<div class="panel">' + t("no_match") + "</div>";
   }
   function wifiBlock(r) {
     var w = r.wifi || {}, g = w.guest || {}, kv = function (k, v) { return "<dt>" + esc(t(k)) + "</dt><dd>" + esc(v) + "</dd>"; };
