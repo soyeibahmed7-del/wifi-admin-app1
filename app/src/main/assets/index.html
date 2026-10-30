@@ -328,6 +328,7 @@ h1 { font-size: 26px; }
       <div><h1 data-i18n="setup_title"></h1><p data-i18n="setup_sub"></p></div>
       <div class="field"><label for="s-name" data-i18n="s_name"></label><input id="s-name" type="text" value="Router 1"></div>
       <div class="field"><label for="s-url" data-i18n="s_url"></label><input id="s-url" type="text" value="http://192.168.1.1" inputmode="url" autocapitalize="off"></div>
+      <div class="field"><label for="s-type" data-i18n="a_type"></label><select id="s-type" class="rt-select"><option value="f3">Tenda F3</option><option value="ac5">Tenda AC5</option></select></div>
       <div class="field"><label for="s-rpw" data-i18n="s_rpw"></label><input id="s-rpw" type="password"></div>
       <div class="field"><label for="s-apw" data-i18n="s_apw"></label><input id="s-apw" type="password"></div>
       <div class="field"><label for="s-apw2" data-i18n="s_apw2"></label><input id="s-apw2" type="password"></div>
@@ -654,7 +655,7 @@ h1 { font-size: 26px; }
     if(action.name==="show_blacklist")return r.rc.getFilter().then(function(f){return "Access-filter mode: "+(f.mode==="deny"?"blacklist (deny)":"whitelist (pass)")+".\n"+(f.list.length?f.list.map(function(x){return (x.remark||x.hostname||"Unknown")+" — "+x.mac;}).join("\n"):"The list is empty.");});
     if(action.name==="add_to_blacklist"||action.name==="remove_from_blacklist")return r.rc.getFilter().then(function(f){if(f.mode!=="deny")throw Error("Router is in whitelist mode. RouterMate will not switch filter modes or risk locking you out.");var macs=f.list.map(function(x){return x.mac;});if(action.name==="add_to_blacklist"&&macs.indexOf(d.mac)<0)macs.push(d.mac);if(action.name==="remove_from_blacklist")macs=macs.filter(function(m){return m!==d.mac;});return r.rc.setFilter("deny",macs).then(function(){return r.rc.getFilter();}).then(function(after){var ok=action.name==="add_to_blacklist"?after.list.some(function(x){return x.mac===d.mac;}):!after.list.some(function(x){return x.mac===d.mac;});if(!ok)throw Error("Router did not confirm the blacklist change.");return action.name==="add_to_blacklist"?"Added "+d.name+" to blacklist.":"Removed "+d.name+" from blacklist.";});});
     if(action.name==="block_device"||action.name==="unblock_device")return r.rc.setBlocked(d.mac,action.name==="block_device").then(function(){return r.rc.snapshot();}).then(function(s){var after=s.devices.find(function(x){return x.mac===d.mac;});var ok=action.name==="block_device"?!!(after&&after.blocked):!(after&&after.blocked);if(!ok)throw Error("Router response did not confirm the device state.");r.devices=s.devices;r.me=s.me;renderAll();return action.name==="block_device"?"Blocked "+d.name+". Router state verified.":"Unblocked "+d.name+". Router state verified.";});
-    if(action.name==="set_bandwidth_limit"){var kbps=Math.max(a.download_limit_kBps,a.upload_limit_kBps);return r.rc.setLimit(d.mac,kbps).then(function(){return r.rc.snapshot();}).then(function(s){var after=s.devices.find(function(x){return x.mac===d.mac;});if(!after||after.limitDownKBps!==kbps||after.limitUpKBps!==kbps)throw Error("Router did not confirm the requested bandwidth limit.");r.devices=s.devices;renderAll();return "Bandwidth limit applied and verified for "+d.name+": "+kbps+" kB/s upload and download.";});}
+    if(action.name==="set_bandwidth_limit"){var kbps=Number(a.limit_kBps);if(!Number.isInteger(kbps)||kbps<0||kbps>38528)throw Error("Invalid bandwidth limit.");return r.rc.setLimit(d.mac,kbps).then(function(){return r.rc.snapshot();}).then(function(s){var after=s.devices.find(function(x){return x.mac===d.mac;});if(!after||after.limitDownKBps!==kbps||after.limitUpKBps!==kbps)throw Error("Router did not confirm the requested bandwidth limit.");r.devices=s.devices;renderAll();return "Bandwidth limit applied and verified for "+d.name+": "+kbps+" kB/s upload and download.";});}
     throw Error("This action is not supported.");
   }
   function aiSend(message){var c=aiConfig(),id=curId(),r=R[id];if(!c.url||!c.token){aiMessage("Please configure the HTTPS AI backend and access token in Settings first.","bot");return;}if(!r){aiMessage("No router is selected or connected.","bot");return;}var send=$("#ai-send");send.disabled=true;$("#ai-status").textContent="Analyzing live router data…";aiMessage(message,"user");var pending=aiMessage("Checking live network data…","bot");fetch(c.url+"/v1/assistant",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+c.token},body:JSON.stringify({message:message,locale:lang,network:aiNetwork(r)})}).then(function(res){return res.json().then(function(j){if(!res.ok)throw Error(j.error||"AI service error ("+res.status+")");return j;});}).then(function(result){pending.textContent=result.reply||"No response.";if(result.action){pending.textContent+="\n\nValidating requested action…";return aiDeviceAction(result.action).then(function(done){pending.textContent=(result.reply||"")+ "\n\n✓ "+done;log("ai_action",{s:done});},function(err){pending.textContent=(result.reply||"")+"\n\nAction not completed: "+err.message;});}}).catch(function(e){pending.textContent="AI unavailable: "+e.message;}).then(function(){send.disabled=false;$("#ai-status").textContent="";aiRefresh();});}
@@ -1013,17 +1014,17 @@ h1 { font-size: 26px; }
   function showFirstScreen() { cfg = loadCfg(); $("#setup").hidden = !!cfg; $("#login").hidden = !cfg; $("#app").hidden = true; }
   $("#setup-form").addEventListener("submit", function (e) {
     e.preventDefault();
-    var err = $("#setup-err"), rname = $("#s-name").value.trim() || "Router 1", url = $("#s-url").value.trim().replace(/\/+$/, ""), rpw = $("#s-rpw").value, a1 = $("#s-apw").value, a2 = $("#s-apw2").value;
+    var err = $("#setup-err"), rname = $("#s-name").value.trim() || "Router 1", url = $("#s-url").value.trim().replace(/\/+$/, ""), rpw = $("#s-rpw").value, rtype = $("#s-type").value, a1 = $("#s-apw").value, a2 = $("#s-apw2").value;
     err.textContent = "";
     if (!/^https?:\/\//i.test(url)) url = "http://" + url;
     if (a1.length < 6) { err.textContent = t("s_short"); return; }
     if (a1 !== a2) { err.textContent = t("s_match"); return; }
     $("#setup-btn").disabled = true; err.textContent = t("s_checking");
-    var test = new RouterClient({ url: url, password: rpw, native: nativeApi });
+    var test = new RouterClient({ url: url, password: rpw, native: nativeApi, type: rtype });
     test.login().then(function (ok) {
       if (!ok) throw new Error(t("s_rbad"));
       var salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem("wifi-cfg", JSON.stringify({ routers: [{ id: "r1", name: rname, url: url, rpw: rpw }], salt: salt, hash: Native.sha256(salt + a1) }));
+      localStorage.setItem("wifi-cfg", JSON.stringify({ routers: [{ id: "r1", name: rname, url: url, rpw: rpw, type: rtype }], salt: salt, hash: Native.sha256(salt + a1) }));
       cfg = loadCfg(); unlocked = true; user = USER;
       $("#setup").hidden = true; $("#s-rpw").value = $("#s-apw").value = $("#s-apw2").value = ""; err.textContent = "";
       start();
