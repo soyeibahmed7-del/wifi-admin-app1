@@ -51,6 +51,9 @@ public class MainActivity extends Activity {
         setContentView(web);
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
+        s.setSupportZoom(false);
+        s.setBuiltInZoomControls(false);
+        s.setDisplayZoomControls(false);
         s.setDomStorageEnabled(true);
         s.setAllowFileAccess(true);
         web.setWebViewClient(new WebViewClient());
