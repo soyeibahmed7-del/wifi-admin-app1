@@ -88,7 +88,23 @@
   };
 
   // Tenda F3 (main router): recorded replies are plain JSON from the same /goform/getQos. Only reading is supported for now.
+  // The F3 sends its WiFi settings as plain base64 JSON (not AES). We only read the name and security type, never the password.
+  function b64json(text) {
+    var t = String(text || "").trim();
+    if (t.charAt(0) === "{") return JSON.parse(t);
+    var bin = atob(t), bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return JSON.parse(new TextDecoder("utf-8").decode(bytes));
+  }
+  P._wifiF3 = function () {
+    return this._req("/goform/getWifi?random=" + Math.random() + "&modules=" + encodeURIComponent("wifiEn,wifiBasicCfg")).then(function (r) {
+      if (r.status >= 300 || isHtml(r.text)) return {};
+      var j = b64json(r.text), b = j.wifiBasicCfg || {};
+      return { ssid24: b.wifiSSID, security: b.wifiSecurityMode, hidden: b.wifiHideSSID === "true", off: (j.wifiEn || {}).wifiEn === "false" };
+    }).catch(function () { return {}; });
+  };
   P._snapshotF3 = function () {
+    var self = this;
     return this._getJson("/goform/getQos?random=" + Math.random() + "&modules=" + encodeURIComponent("localhost,onlineList,blackList,macFilter")).then(function (q) {
       var myIp = (q.localhost || {}).localhost || "";
       function dev(d, blocked, online) {
@@ -106,7 +122,7 @@
       // The F3 does not tell us the phone's MAC, only its address. The device with that address is the one we reach the F3 through.
       var me = devices.filter(function (d) { return myIp && d.ip === myIp; })[0];
       var mf = q.macFilter || {};
-      return { me: { localhostMAC: me ? me.mac : "" }, devices: devices, guests: [], wifi: {}, filterMode: mf.curFilterMode === "pass" ? "pass" : "deny" };
+      return self._wifiF3().then(function (w) { return { me: { localhostMAC: me ? me.mac : "" }, devices: devices, guests: [], wifi: w, filterMode: mf.curFilterMode === "pass" ? "pass" : "deny" }; });
     });
   };
 

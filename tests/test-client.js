@@ -155,6 +155,7 @@ server.listen(0, async () => {
           rows.forEach((r) => { const d = Object.assign({}, all.find((x) => x.mac === r[2])); d.lim = r[5] === "false" ? "0.00" : (+r[4]).toFixed(2); (r[5] === "false" ? F.black : F.online).push(d); });
           return res.end('{"errCode":"0"}');
         }
+        if (req.url.startsWith("/goform/getWifi")) return res.end(Buffer.from(JSON.stringify({ wifiEn: { wifiEn: "true" }, wifiBasicCfg: { wifiHideSSID: "false", wifiSSID: "Jamir ", wifiSecurityMode: "wpa&wpa2", wifiPwd: "secret" } }), "utf8").toString("base64"));
         if (req.url.startsWith("/goform/getStatus")) return res.end(JSON.stringify({ internetStatus: { wanConnectStatus: "13103061" }, systemInfo: { wanType: "pppoe", statusWanIP: "10.15.5.59", wanConnectTime: "84951" }, wanAdvCfg: { wanSpeedCurrent: "100" } }));
         if (req.url.startsWith("/goform/getNAT")) return res.end(JSON.stringify({ staticIPList: [], portList: [], macFilter: { curFilterMode: F.mode, macFilterList: F.allow.map((m) => Object.assign({ filterMode: "pass" }, m)) },
           localhost: { localhostMAC: "80:9F:E4:42:71:69", localhost: F.ip }, onlineList: F.online.map(q), ddns: { ddnsEn: "false", ddnsServiceName: "oray.com", ddnsUser: "", ddnsPwd: "pw1", ddnsServer: "" }, dmz: { dmzEn: "false", dmzHostIP: "" }, ping: { pingEn: "false" }, upnp: { upnpEn: "false" }, apIsolation: { apIsolationEn: "false" } }));
@@ -172,6 +173,7 @@ server.listen(0, async () => {
     let s2 = await r2.snapshot();
     assert.strictEqual(s2.devices.length, 3); assert.strictEqual(s2.devices[1].name.trim(), "আশরাফ"); assert.strictEqual(s2.me.localhostMAC, "80:9f:e4:42:71:69");
     assert.strictEqual(s2.devices[1].mac, "6a:b3:cb:5a:55:62"); assert.strictEqual(s2.devices[1].downKBps, 3754);
+    assert.strictEqual(s2.wifi.ssid24, "Jamir "); assert.strictEqual(s2.wifi.security, "wpa&wpa2"); assert.ok(!JSON.stringify(s2).includes("secret"));
     const i2 = await r2.internet(); assert.strictEqual(i2.state, "ok"); assert.strictEqual(i2.type, "pppoe");
     await assert.rejects(() => r2.setBlocked("80:9f:e4:42:71:69", true), /lock you out/);
     await r2.setBlocked("c2:11:21:1f:e7:95", true);
