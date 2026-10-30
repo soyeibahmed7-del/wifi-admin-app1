@@ -305,6 +305,17 @@ h1 { font-size: 26px; }
 @keyframes ho3 { from { transform: rotateX(30deg) rotateY(50deg) rotateZ(0deg); } to { transform: rotateX(30deg) rotateY(50deg) rotateZ(360deg); } }
 .holo.paused * { animation-play-state: paused !important; }
 @media (prefers-reduced-motion: reduce) { .holo * { animation: none !important; } }
+
+.ai-hero{display:flex;justify-content:space-between;align-items:center;gap:12px;background:linear-gradient(120deg,#102b48,#123f5a);color:#eafaff;border-color:#17618a}
+.ai-hero h2{font-size:19px;margin:0}.ai-hero .hint{color:#a8d4e8;margin:5px 0 0}
+.ai-chat{display:flex;flex-direction:column;gap:10px;max-height:390px;overflow:auto;padding:4px 0 12px}
+.ai-msg{max-width:92%;padding:11px 14px;border-radius:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ai-msg.bot{align-self:flex-start;background:var(--surface-2);border:1px solid var(--line)}
+.ai-msg.user{align-self:flex-end;background:#123f66;color:#effaff}
+.ai-form{display:flex;gap:8px}.ai-form input{flex:1;min-width:0;border:1px solid var(--line);border-radius:9px;background:var(--surface);padding:10px 12px}
+.ai-insights{display:grid;gap:8px}.ai-insight{padding:10px 12px;border:1px solid var(--line);border-radius:9px;background:var(--surface-2)}
+.ai-insight b{display:block;margin-bottom:3px}.ai-insight small{color:var(--muted)}
+@media(max-width:680px){.ai-form{align-items:stretch}.ai-form .btn{padding-inline:10px}}
 </style>
 </head>
 <body>
@@ -360,6 +371,7 @@ h1 { font-size: 26px; }
       <a href="#overview" data-nav="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg><span data-i18n="nav_overview"></span></a>
       <a href="#devices" data-nav="devices"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="14" height="10" rx="1.5"/><path d="M0 19h18"/><rect x="18" y="8" width="5" height="11" rx="1"/></svg><span data-i18n="nav_devices"></span></a>
       <a href="#wifi" data-nav="wifi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16.1a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/></svg><span data-i18n="nav_wifi"></span></a>
+      <a href="#assistant" data-nav="assistant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="4"/></svg><span data-i18n="nav_assistant"></span></a>
       <a href="#activity" data-nav="activity"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg><span data-i18n="nav_activity"></span></a>
       <a href="#settings" data-nav="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="nav_settings"></span></a>
     </nav>
@@ -451,10 +463,32 @@ h1 { font-size: 26px; }
         <h2 data-i18n="app_settings"></h2>
         <button class="btn" id="reset-app" type="button" data-i18n="app_settings_btn"></button>
       </div>
+      <div class="panel">
+        <h2 data-i18n="ai_config"></h2>
+        <p class="hint" data-i18n="ai_config_secure"></p>
+        <div class="field"><label for="ai-url" data-i18n="ai_url"></label><input id="ai-url" type="url" placeholder="https://your-backend.example.com" autocomplete="url"></div>
+        <div class="field"><label for="ai-token" data-i18n="ai_token"></label><input id="ai-token" type="password" autocomplete="off"></div>
+        <button class="btn primary" id="ai-config-save" type="button" data-i18n="ai_save"></button><span class="hint" id="ai-config-msg"></span>
+      </div>
       <div class="panel about"><img src="img/icon.png" alt=""><div><b data-i18n="about_t"></b><small data-i18n="about_s"></small></div></div>
       <div class="panel">
         <button class="btn danger" id="logout" type="button" data-i18n="logout"></button>
       </div>
+    </div></section>
+
+    <section class="view" id="view-assistant" hidden><div class="main">
+      <div class="panel ai-hero"><div><h2 data-i18n="ai_title"></h2><p class="hint" data-i18n="ai_sub"></p></div><span class="pill good" id="ai-live-state">LIVE DATA</span></div>
+      <div class="tiles">
+        <div class="tile"><div class="k" data-i18n="ai_health"></div><div class="v" id="ai-health">—</div></div>
+        <div class="tile"><div class="k" data-i18n="ai_devices"></div><div class="v" id="ai-count">—</div></div>
+        <div class="tile"><div class="k" data-i18n="ai_router"></div><div class="v" id="ai-model" style="font-size:17px">—</div></div>
+      </div>
+      <div class="panel"><h2 data-i18n="ai_insights"></h2><div id="ai-insights" class="ai-insights"><p class="hint" data-i18n="ai_insights_empty"></p></div></div>
+      <div class="panel"><h2 data-i18n="ai_chat"></h2><div id="ai-chat" class="ai-chat" aria-live="polite"><div class="ai-msg bot" data-i18n="ai_welcome"></div></div>
+        <form id="ai-form" class="ai-form"><input id="ai-input" type="text" maxlength="1000" autocomplete="off" data-i18n-ph="ai_placeholder"><button class="btn primary" id="ai-send" type="submit" data-i18n="ai_send"></button></form>
+        <p class="hint" id="ai-status" role="status" data-i18n="ai_config_hint"></p>
+      </div>
+      <div class="panel"><h2 data-i18n="ai_recommend"></h2><div id="ai-recommendations" class="ai-insights"><p class="hint" data-i18n="ai_recommend_empty"></p></div></div>
     </div></section>
 
     <section class="view" id="view-activity" hidden>
@@ -471,7 +505,7 @@ h1 { font-size: 26px; }
   var T = {
     en: {
       brand: "RouteMate", wt_net: "WiFi Networks", wt_guest: "Guest Network", wt_acl: "Access List", recent_dev: "Recent Devices", connected: "Connected", router_status: "Router Status", about_t: "About RouteMate", about_s: "Version 1.0 · Your router's best friend", tagline: "YOUR ROUTER'S BEST FRIEND", rd_none: "No devices online.", more: "devices", login_h: "Router Admin Login", secure: "Secure Access", nav_overview: "Overview", nav_devices: "Devices", nav_wifi: "WiFi", nav_activity: "Activity", nav_settings: "Settings",
-      title_overview: "Overview", title_devices: "Devices", title_wifi: "WiFi", title_activity: "Activity", title_settings: "Settings", set_lang: "Language", set_router: "Router", t_guests: "Guest devices",
+      title_overview: "Overview", title_devices: "Devices", title_wifi: "WiFi", title_assistant: "AI Network Assistant", title_activity: "Activity", title_settings: "Settings", nav_assistant: "AI Assistant", ai_title:"AI Network Assistant", ai_sub:"Ask questions about your live router data. Actions are checked by RouterMate before they run.", ai_health:"Network status", ai_devices:"Connected devices", ai_router:"Router model", ai_insights:"Network Health & AI Insights", ai_insights_empty:"Connect a router and refresh to see live diagnostics.", ai_chat:"Ask RouterMate", ai_welcome:"Hello! I can explain your live network data and help with supported device controls.", ai_placeholder:"Ask why Wi-Fi is slow, or manage a device…", ai_send:"Send", ai_status:"", ai_config_hint:"Configure your secure AI backend in Settings to enable Gemini.", ai_recommend:"Smart Recommendations", ai_recommend_empty:"Recommendations will appear after a live network check.", ai_config:"AI backend connection", ai_config_secure:"Use your own HTTPS Gemini gateway. Never enter a Gemini API key here.", ai_url:"Backend HTTPS URL", ai_token:"App access token", ai_save:"Save AI connection", set_lang: "Language", set_router: "Router", t_guests: "Guest devices",
       login_title: "Sign in", login_sub: "Enter your app password.", l_pass: "App password", login_btn: "Sign in",
       login_bad: "Wrong password.", logout: "Log out", router_page: "Open router page", guest_pill: "Guest", guest_note: "Guest devices can only be viewed.", lang_btn: "বাংলা",
       online: "Online", offline: "Offline", blocked: "Blocked", reconnecting: "Router not reachable", live: "Live",
@@ -508,6 +542,7 @@ h1 { font-size: 26px; }
       acl_title: "অ্যাক্সেস তালিকা", acl_black: "ব্ল্যাকলিস্ট", acl_white: "হোয়াইটলিস্ট", acl_hint_deny: "ব্ল্যাকলিস্ট: টিক দেওয়া ডিভাইস ওয়াইফাই ব্যবহার করতে পারবে না। বাকি সবাই পারবে।", acl_hint_pass: "হোয়াইটলিস্ট: শুধু টিক দেওয়া ডিভাইস ওয়াইফাই ব্যবহার করতে পারবে। বাকি সবাই আটকে যাবে।", acl_save: "সেভ করুন", acl_confirm: "প্রয়োগ করতে আবার চাপুন", acl_you: "এই ফোন", acl_saved: "সেভ হয়েছে।", acl_loading: "লোড হচ্ছে…", acl_empty: "এখনো কোনো ডিভাইস নেই।", acl_off: "এখনো সেভ হয়নি",
       setup_title: "সেটআপ", setup_sub: "একবার রাউটারের সাথে যুক্ত করুন। বাসার ওয়াইফাইতে থাকুন।", s_url: "রাউটারের ঠিকানা", s_rpw: "রাউটারের অ্যাডমিন পাসওয়ার্ড", s_apw: "অ্যাপের নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)", s_apw2: "অ্যাপের পাসওয়ার্ড আবার দিন", s_btn: "সেভ করে যুক্ত করুন", s_short: "অ্যাপের পাসওয়ার্ডে কমপক্ষে ৬টি অক্ষর লাগবে।", s_match: "দুটি পাসওয়ার্ড মেলেনি।", s_checking: "যুক্ত হচ্ছে…", s_rbad: "রাউটার ওই পাসওয়ার্ড গ্রহণ করেনি।", app_settings: "অ্যাপের সেটিংস", app_settings_btn: "রাউটার বা অ্যাপের পাসওয়ার্ড বদলান", app_settings_confirm: "সেভ করা তথ্য মুছতে আবার চাপুন",
       x_blocked: "{n} ব্লক করা হয়েছে", x_unblocked: "{n} আবার ইন্টারনেট ব্যবহার করতে পারবে", x_limit: "{n}: {l}", updated: "আপডেট", confirm_block: "ব্লক করতে আবার চাপুন", err_prefix: "রাউটারের সমস্যা: "
+      nav_assistant:"AI সহকারী", title_assistant:"AI নেটওয়ার্ক সহকারী", ai_title:"AI নেটওয়ার্ক সহকারী", ai_sub:"লাইভ রাউটার তথ্য নিয়ে প্রশ্ন করুন। কাজ করার আগে RouterMate যাচাই করবে।", ai_health:"নেটওয়ার্ক অবস্থা", ai_devices:"সংযুক্ত ডিভাইস", ai_router:"রাউটার মডেল", ai_insights:"নেটওয়ার্ক স্বাস্থ্য ও AI বিশ্লেষণ", ai_insights_empty:"লাইভ বিশ্লেষণের জন্য রাউটার সংযুক্ত করে রিফ্রেশ করুন।", ai_chat:"RouterMate-কে জিজ্ঞাসা করুন", ai_welcome:"স্বাগতম! আমি লাইভ নেটওয়ার্ক তথ্য ব্যাখ্যা করতে এবং সমর্থিত ডিভাইস নিয়ন্ত্রণে সাহায্য করতে পারি।", ai_placeholder:"Wi-Fi ধীর কেন, অথবা ডিভাইস পরিচালনা…", ai_send:"পাঠান", ai_config_hint:"Gemini চালু করতে Settings থেকে নিরাপদ AI backend যুক্ত করুন।", ai_recommend:"স্মার্ট পরামর্শ", ai_recommend_empty:"লাইভ নেটওয়ার্ক পরীক্ষা হলে পরামর্শ দেখাবে।", ai_config:"AI backend সংযোগ", ai_config_secure:"নিজের HTTPS Gemini gateway ব্যবহার করুন। এখানে Gemini API key দেবেন না।", ai_url:"Backend HTTPS URL", ai_token:"App access token", ai_save:"AI সংযোগ সংরক্ষণ করুন",
     }
   };
   var lang = "en";
@@ -600,13 +635,31 @@ h1 { font-size: 26px; }
   }
   document.querySelectorAll("[data-lang-toggle]").forEach(function (b) { b.addEventListener("click", function () { lang = lang === "en" ? "bn" : "en"; try { localStorage.setItem("wifi-lang", lang); } catch (e) {} applyStatic(); renderAcl(); markLang(); }); });
 
-  var VIEWS = ["overview", "devices", "wifi", "activity", "settings"];
+  var VIEWS = ["overview", "devices", "wifi", "assistant", "activity", "settings"];
   document.addEventListener("visibilitychange", function () { var h = document.querySelector(".holo"); if (h) h.classList.toggle("paused", document.hidden); });
   function renderRoute() {
     VIEWS.forEach(function (k) { $("#view-" + k).hidden = k !== route; var a = document.querySelector('[data-nav="' + k + '"]'); if (k === route) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
     $("#page-title").textContent = t("title_" + route);
-    if (route === "wifi" && !acl.loaded && !acl.busy && unlocked) { acl.busy = true; if (!acl.rid || (sel !== "all" && acl.rid !== sel)) acl.rid = aclDefault(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
+    if (route === "assistant") { loadAiConfigUi(); aiRefresh(); }\n    if (route === "wifi" && !acl.loaded && !acl.busy && unlocked) { acl.busy = true; if (!acl.rid || (sel !== "all" && acl.rid !== sel)) acl.rid = aclDefault(); loadAcl().then(function () { acl.busy = false; renderAcl(); }); }
   }
+
+  // ---- AI Network Assistant: Gemini only proposes typed allow-listed actions; this app executes them. ----
+  function aiConfig(){try{return JSON.parse(localStorage.getItem("routemate-ai")||"null")||{};}catch(e){return {};}}
+  function saveAiConfig(){var url=$("#ai-url").value.trim().replace(/\\/+$/,""),token=$("#ai-token").value.trim(),msg=$("#ai-config-msg");if(!/^https:\\/\\//i.test(url)){msg.textContent="Use an HTTPS backend URL.";return;}if(token.length<32){msg.textContent="Access token must be at least 32 characters.";return;}localStorage.setItem("routemate-ai",JSON.stringify({url:url,token:token}));msg.textContent="Saved on this device.";$("#ai-status").textContent="AI backend configured."; }
+  function aiMessage(text,who){var box=$("#ai-chat"),el=document.createElement("div");el.className="ai-msg "+who;el.textContent=String(text||"");box.appendChild(el);box.scrollTop=box.scrollHeight;return el;}
+  function aiNetwork(r){return{router:{model:r.type==="f3"?"Tenda F3":"Tenda AC5",type:r.type,firmware:"Not exposed by current client"},wifi:r.wifi||{},net:r.net||null,devices:(r.devices||[]).map(function(d){return{mac:d.mac,name:d.name,hostname:d.hostname,ip:d.ip,online:d.online,blocked:d.blocked,downKBps:d.downKBps,upKBps:d.upKBps,limitDownKBps:d.limitDownKBps,limitUpKBps:d.limitUpKBps};})};}
+  function aiRefresh(){var id=curId(),r=R[id];if(!r){$("#ai-health").textContent="—";$("#ai-count").textContent="—";$("#ai-model").textContent="—";return;}var ds=r.devices||[],online=ds.filter(function(d){return d.online&&!d.blocked;});$("#ai-count").textContent=String(online.length);$("#ai-model").textContent=r.type==="f3"?"Tenda F3":"Tenda AC5";$("#ai-health").textContent=r.error?"Unavailable":r.net&&r.net.state==="ok"?"Online":r.net?r.net.state:"Unknown";var insights=[];if(r.error)insights.push(["Router data unavailable",r.error]);else{if(r.net&&r.net.state!=="ok")insights.push(["Internet connection", "Router reports: "+r.net.state]);var ranked=online.filter(function(d){return Number.isFinite(+d.downKBps)&&Number.isFinite(+d.upKBps);}).sort(function(a,b){return(b.downKBps+b.upKBps)-(a.downKBps+a.upKBps);});if(ranked.length)insights.push(["Highest current traffic sample",ranked[0].name+" · "+(ranked[0].downKBps+ranked[0].upKBps).toFixed(1)+" KB/s combined"]);if(ds.some(function(d){return d.name==="Unknown"&&d.online&&!d.blocked;}))insights.push(["Review unfamiliar devices","At least one connected device has no useful hostname or remark. This does not prove it is unauthorized."]);if(!r.net)insights.push(["Internet status","WAN diagnostics are not available in this refresh."]);}var target=$("#ai-insights");target.innerHTML=insights.length?insights.map(function(x){return '<div class="ai-insight"><b>'+esc(x[0])+'</b><small>'+esc(x[1])+'</small></div>';}).join(""):'<p class="hint">No issues detected in the available data.</p>';var rec=$("#ai-recommendations");var suggestions=[];if(ds.some(function(d){return d.name==="Unknown"&&d.online&&!d.blocked;}))suggestions.push("Check unknown device names against the devices used by your household before taking action.");if(r.net&&r.net.state!=="ok")suggestions.push("Check the WAN cable and ISP status; the router reports "+r.net.state+".");if(!ds.length)suggestions.push("Refresh the device list while connected to the router Wi-Fi.");if(!suggestions.length)suggestions.push("Keep router firmware updated using the official router administration page.");rec.innerHTML=suggestions.map(function(s){return '<div class="ai-insight">'+esc(s)+'</div>';}).join("");}
+  function aiDeviceAction(action){var a=action.args||{},id=curId(),r=R[id];if(!r)throw Error("No selected router.");var d=(r.devices||[]).find(function(x){return x.mac===String(a.mac||"").toLowerCase();});if(action.name!=="show_blacklist"&&!d)throw Error("That device is not in the current live device list.");if(action.name==="block_device"||action.name==="add_to_blacklist"){if(!r.me||!r.me.localhostMAC)throw Error("RouterMate cannot safely identify this phone on this router, so blocking is disabled.");if(d.mac===String(r.me.localhostMAC).toLowerCase())throw Error("This is the controlling phone. Blocking it is prevented.");if(d.ip&&d.ip===r.url.replace(/^https?:\\/\\//,"").split(":")[0])throw Error("This appears to be the router address; blocking is prevented.");}
+    if(action.name==="show_blacklist")return r.rc.getFilter().then(function(f){return "Access-filter mode: "+(f.mode==="deny"?"blacklist (deny)":"whitelist (pass)")+".\n"+(f.list.length?f.list.map(function(x){return (x.remark||x.hostname||"Unknown")+" — "+x.mac;}).join("\n"):"The list is empty.");});
+    if(action.name==="add_to_blacklist"||action.name==="remove_from_blacklist")return r.rc.getFilter().then(function(f){if(f.mode!=="deny")throw Error("Router is in whitelist mode. RouterMate will not switch filter modes or risk locking you out.");var macs=f.list.map(function(x){return x.mac;});if(action.name==="add_to_blacklist"&&macs.indexOf(d.mac)<0)macs.push(d.mac);if(action.name==="remove_from_blacklist")macs=macs.filter(function(m){return m!==d.mac;});return r.rc.setFilter("deny",macs).then(function(){return r.rc.getFilter();}).then(function(after){var ok=action.name==="add_to_blacklist"?after.list.some(function(x){return x.mac===d.mac;}):!after.list.some(function(x){return x.mac===d.mac;});if(!ok)throw Error("Router did not confirm the blacklist change.");return action.name==="add_to_blacklist"?"Added "+d.name+" to blacklist.":"Removed "+d.name+" from blacklist.";});});
+    if(action.name==="block_device"||action.name==="unblock_device")return r.rc.setBlocked(d.mac,action.name==="block_device").then(function(){return r.rc.snapshot();}).then(function(s){var after=s.devices.find(function(x){return x.mac===d.mac;});var ok=action.name==="block_device"?!!(after&&after.blocked):!(after&&after.blocked);if(!ok)throw Error("Router response did not confirm the device state.");r.devices=s.devices;r.me=s.me;renderAll();return action.name==="block_device"?"Blocked "+d.name+". Router state verified.":"Unblocked "+d.name+". Router state verified.";});
+    if(action.name==="set_bandwidth_limit"){var kbps=Math.max(a.download_limit_kBps,a.upload_limit_kBps);return r.rc.setLimit(d.mac,kbps).then(function(){return r.rc.snapshot();}).then(function(s){var after=s.devices.find(function(x){return x.mac===d.mac;});if(!after||after.limitDownKBps!==kbps||after.limitUpKBps!==kbps)throw Error("Router did not confirm the requested bandwidth limit.");r.devices=s.devices;renderAll();return "Bandwidth limit applied and verified for "+d.name+": "+kbps+" kB/s upload and download.";});}
+    throw Error("This action is not supported.");
+  }
+  function aiSend(message){var c=aiConfig(),id=curId(),r=R[id];if(!c.url||!c.token){aiMessage("Please configure the HTTPS AI backend and access token in Settings first.","bot");return;}if(!r){aiMessage("No router is selected or connected.","bot");return;}var send=$("#ai-send");send.disabled=true;$("#ai-status").textContent="Analyzing live router data…";aiMessage(message,"user");var pending=aiMessage("Checking live network data…","bot");fetch(c.url+"/v1/assistant",{method:"POST",headers:{"content-type":"application/json","authorization":"Bearer "+c.token},body:JSON.stringify({message:message,locale:lang,network:aiNetwork(r)})}).then(function(res){return res.json().then(function(j){if(!res.ok)throw Error(j.error||"AI service error ("+res.status+")");return j;});}).then(function(result){pending.textContent=result.reply||"No response.";if(result.action){pending.textContent+="\n\nValidating requested action…";return aiDeviceAction(result.action).then(function(done){pending.textContent=(result.reply||"")+ "\n\n✓ "+done;log("ai_action",{s:done});},function(err){pending.textContent=(result.reply||"")+"\n\nAction not completed: "+err.message;});}}).catch(function(e){pending.textContent="AI unavailable: "+e.message;}).then(function(){send.disabled=false;$("#ai-status").textContent="";aiRefresh();});}
+  $("#ai-form").addEventListener("submit",function(e){e.preventDefault();var input=$("#ai-input"),m=input.value.trim();if(!m)return;input.value="";aiSend(m);});
+  $("#ai-config-save").addEventListener("click",saveAiConfig);
+  function loadAiConfigUi(){var c=aiConfig();$("#ai-url").value=c.url||"";$("#ai-token").value=c.token||"";$("#ai-status").textContent=c.url?"AI backend configured.":"Configure your HTTPS AI backend in Settings.";}
   function readHash() { var h = (location.hash || "#overview").slice(1); route = VIEWS.indexOf(h) > -1 ? h : "overview"; renderRoute(); }
   window.addEventListener("hashchange", readHash);
 
@@ -742,7 +795,7 @@ h1 { font-size: 26px; }
   var aclSig = "";
   function renderAll() {
     var sg = aclDevices().map(function (d) { return d.mac + d.name; }).join("|") + "|" + routers().length; if (sg !== aclSig) { aclSig = sg; renderAcl(); }
-    renderBar(); renderTiles(); renderLists(); renderRecent(); renderDevices(); renderWifi(); renderNet(); renderWan(); renderActivity(); renderStatus(); renderRouters();
+    renderBar(); renderTiles(); renderLists(); renderRecent(); renderDevices(); renderWifi(); renderNet(); renderWan(); renderActivity(); renderStatus(); renderRouters(); if(route==="assistant") aiRefresh();
   }
 
   function pollOne(r) {
