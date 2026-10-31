@@ -4,6 +4,7 @@
 //   APP_TOKEN       secret  a long random password; the app sends it in "Authorization: Bearer ..."
 //   GEMINI_MODEL    var     optional, default below
 const DEFAULT_MODEL = "gemini-3.8-flash";
+const FALLBACKS = ["gemini-3.6-flash", "gemini-3.5-flash-lite"];
 const MAX_BODY = 60_000;      // bytes
 const MAX_TURNS = 40;         // contents entries per request
 
@@ -36,13 +37,25 @@ export default {
       tools: Array.isArray(b.tools) ? b.tools.slice(0, 1) : undefined,
       generationConfig: { temperature: 0.3, maxOutputTokens: 900 },
     };
-    const model = env.GEMINI_MODEL || DEFAULT_MODEL;
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
-      body: JSON.stringify(payload),
-    });
-    const text = await r.text();
-    return new Response(text, { status: r.status === 429 ? 429 : r.ok ? 200 : 502, headers: { "Content-Type": "application/json" } });
+    // Try the preferred model first; if Google says it is busy/unavailable or it is slow, fall back to the next.
+    const models = [...new Set([env.GEMINI_MODEL || DEFAULT_MODEL, ...FALLBACKS])];
+    let last = { status: 503, text: JSON.stringify({ error: { message: "No model answered" } }) };
+    for (const model of models) {
+      try {
+        const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
+          body: JSON.stringify(payload),
+          signal: AbortSignal.timeout(20000),
+        });
+        const text = await r.text();
+        if (r.ok) return new Response(text, { status: 200, headers: { "Content-Type": "application/json", "X-Model": model } });
+        last = { status: r.status, text };
+        if (![429, 500, 503, 504, 404].includes(r.status)) break;   // real errors (bad key, bad request) will not improve by switching
+      } catch (e) {
+        last = { status: 504, text: JSON.stringify({ error: { message: `${model} timed out` } }) };
+      }
+    }
+    return new Response(last.text, { status: last.status === 429 ? 429 : 502, headers: { "Content-Type": "application/json" } });
   },
 };
