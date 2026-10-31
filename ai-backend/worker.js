@@ -22,7 +22,7 @@ export default {
     if (req.method !== "POST") return json({ error: "POST only" }, 405);
     if (!env.APP_TOKEN || !env.GEMINI_API_KEY) return json({ error: "Backend is not configured (missing secrets)" }, 500);
     const auth = req.headers.get("Authorization") || "";
-    if (!auth.startsWith("Bearer ") || !safeEqual(auth.slice(7), env.APP_TOKEN)) return json({ error: "Unauthorized" }, 401);
+    if (!auth.startsWith("Bearer ") || !safeEqual(auth.slice(7).trim(), String(env.APP_TOKEN).trim())) return json({ error: "Unauthorized" }, 401);
 
     const raw = await req.text();
     if (raw.length > MAX_BODY) return json({ error: "Request too large" }, 413);
