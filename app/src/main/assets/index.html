@@ -1039,7 +1039,7 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
     var m = String(e && e.message || e);
     if (m === "ai_auth") { var c = aiCfg(); return t("ae_auth") + (c ? " (" + c.token.length + ")" : ""); } if (m === "ai_busy") return t("ae_busy"); if (m === "ai_empty") return t("ae_empty");
     if (m.indexOf("ai_backend:") === 0) return t("ae_backend", { s: m.slice(11, 60) });
-    return t("ae_net");
+    return t("ae_net") + " [" + m.slice(0, 90) + "]";
   }
   function saveLog() { try { localStorage.setItem("rm-chat", JSON.stringify(AI.log.slice(-30))); } catch (e) {} }
   try { AI.log = JSON.parse(localStorage.getItem("rm-chat") || "[]"); } catch (e) { AI.log = []; }

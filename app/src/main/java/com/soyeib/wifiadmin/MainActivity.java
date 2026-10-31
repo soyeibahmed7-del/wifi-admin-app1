@@ -103,7 +103,7 @@ public class MainActivity extends Activity {
                         HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
                         c.setInstanceFollowRedirects(false);
                         c.setConnectTimeout(6000);
-                        c.setReadTimeout(30000);
+                        c.setReadTimeout(90000);
                         c.setRequestMethod(method);
                         if (headers != null) {
                             for (String line : headers.split("\n")) {
