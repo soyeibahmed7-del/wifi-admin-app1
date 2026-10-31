@@ -474,8 +474,8 @@ h1 { font-size: 26px; }
         <button class="btn" id="reset-app" type="button" data-i18n="app_settings_btn"></button>
       </div>
       <div class="panel"><h2 data-i18n="aiset_t"></h2><p class="hint" data-i18n="aiset_p"></p>
-        <div class="field"><label for="ai-url" data-i18n="aiset_url"></label><input id="ai-url" type="text" inputmode="url" autocapitalize="off" placeholder="https://routermate-ai.xxx.workers.dev"></div>
-        <div class="field"><label for="ai-token" data-i18n="aiset_tok"></label><input id="ai-token" type="password" autocomplete="off"></div>
+        <div class="field"><label for="ai-url" data-i18n="aiset_url"></label><input id="ai-url" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://routermate-ai.xxx.workers.dev"></div>
+        <div class="field"><label for="ai-token" data-i18n="aiset_tok"></label><input id="ai-token" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
         <div class="acl-actions"><button class="btn primary" type="button" id="ai-save" data-i18n="acl_save"></button><button class="btn" type="button" id="ai-off" data-i18n="aiset_off"></button><span class="hint" id="ai-msg"></span></div></div>
       <div class="panel about"><img src="img/icon.png" alt=""><div><b data-i18n="about_t"></b><small data-i18n="about_s"></small></div></div>
       <div class="panel">
@@ -1037,7 +1037,7 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
   function aiHttp(m, u, h, b) { return nativeApi.http(m, u, h, b); }
   function aiErr(e) {
     var m = String(e && e.message || e);
-    if (m === "ai_auth") return t("ae_auth"); if (m === "ai_busy") return t("ae_busy"); if (m === "ai_empty") return t("ae_empty");
+    if (m === "ai_auth") { var c = aiCfg(); return t("ae_auth") + (c ? " (" + c.token.length + ")" : ""); } if (m === "ai_busy") return t("ae_busy"); if (m === "ai_empty") return t("ae_empty");
     if (m.indexOf("ai_backend:") === 0) return t("ae_backend", { s: m.slice(11, 60) });
     return t("ae_net");
   }
@@ -1106,10 +1106,10 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
   $("#ai-save").addEventListener("click", function () {
     var u = $("#ai-url").value.trim(), k = $("#ai-token").value.trim();
     if (!/^https:\/\//i.test(u) || !k) { $("#ai-msg").textContent = t("ae_net"); return; }
-    try { localStorage.setItem("rm-ai", JSON.stringify({ url: u, token: k })); } catch (e) {} $("#ai-token").value = ""; $("#ai-msg").textContent = t("ai_saved"); renderChat();
+    try { localStorage.setItem("rm-ai", JSON.stringify({ url: u, token: k })); } catch (e) {} $("#ai-msg").textContent = t("ai_saved") + " (" + k.length + ")"; renderChat();
   });
   $("#ai-off").addEventListener("click", function () { try { localStorage.removeItem("rm-ai"); } catch (e) {} $("#ai-url").value = ""; $("#ai-token").value = ""; $("#ai-msg").textContent = t("ai_removed"); renderChat(); });
-  (function () { var c = aiCfg(); if (c) $("#ai-url").value = c.url; })();
+  (function () { var c = aiCfg(); if (c) { $("#ai-url").value = c.url; $("#ai-token").value = c.token; } })();
   $("#logout").addEventListener("click", function () { api("/api/logout", {}).catch(function () {}).then(signedOut); });
 
   applyStatic();
