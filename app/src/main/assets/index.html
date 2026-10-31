@@ -336,7 +336,7 @@ h1 { font-size: 26px; }
     <form class="login-card" id="setup-form" autocomplete="off">
       <div class="lockup"><img src="img/lockup.png" alt="RouteMate"></div>
       <div><h1 data-i18n="setup_title"></h1><p data-i18n="setup_sub"></p></div>
-      <div class="field"><label for="s-type" data-i18n="a_type"></label><select id="s-type" class="rt-select"><option value="ac5">Tenda AC5</option><option value="f3">Tenda F3</option><option value="netis">Netis (view only)</option></select></div>
+      <div class="field"><label for="s-type" data-i18n="a_type"></label><select id="s-type" class="rt-select"><option value="ac5">Tenda AC5</option><option value="f3">Tenda F3</option><option value="netis">Netis</option></select></div>
       <div class="field"><label for="s-name" data-i18n="s_name"></label><input id="s-name" type="text" value="Router 1"></div>
       <div class="field"><label for="s-url" data-i18n="s_url"></label><input id="s-url" type="text" value="http://192.168.1.1" inputmode="url" autocapitalize="off"></div>
       <div class="field"><label for="s-rpw" data-i18n="s_rpw"></label><input id="s-rpw" type="password"></div>
@@ -464,7 +464,7 @@ h1 { font-size: 26px; }
           <h2 style="margin-top:16px" data-i18n="add_router"></h2>
           <div class="field"><label for="a-name" data-i18n="s_name"></label><input id="a-name" type="text"></div>
           <div class="field"><label for="a-url" data-i18n="s_url"></label><input id="a-url" type="text" value="http://192.168.0.1" inputmode="url" autocapitalize="off"></div>
-          <div class="field"><label for="a-type" data-i18n="a_type"></label><select id="a-type" class="rt-select"><option value="f3">Tenda F3</option><option value="ac5">Tenda AC5</option><option value="netis">Netis (view only)</option></select></div>
+          <div class="field"><label for="a-type" data-i18n="a_type"></label><select id="a-type" class="rt-select"><option value="f3">Tenda F3</option><option value="ac5">Tenda AC5</option><option value="netis">Netis</option></select></div>
           <div class="field"><label for="a-pw" data-i18n="s_rpw"></label><input id="a-pw" type="password"></div>
           <div class="login-err" id="add-err" role="alert"></div>
           <button class="btn primary" type="submit" id="add-btn" data-i18n="add_btn"></button>
@@ -708,7 +708,7 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
       var use = d.blocked ? t("u_none") : d.online ? t("u_now") + " <b>↓ " + num(mbps(d.downKBps), 2) + " ↑ " + num(mbps(d.upKBps), 2) + " Mbps</b>" : "";
       var busy = pending[key] ? " disabled" : "";
       var blockBtn = isMe(d) && !d.blocked ? "" : '<button class="btn sm ' + (d.blocked ? "" : "danger") + '" type="button" data-block="' + key + '"' + busy + ">" + (d.blocked ? t("unblock") : t("block")) + "</button>";
-      var acts = d.readonly ? '<div class="acts"><span class="pill warn">' + t("r_readonly") + "</span></div>" :
+      var acts = d.readonly ? '<div class="acts"><span class="pill warn">' + t("r_readonly") + "</span></div>" : d.noLimit ? '<div class="acts">' + blockBtn + "</div>" :
         '<div class="acts"><label>' + t("limit") + ' <select data-limit="' + key + '"' + (d.blocked || !d.online || busy ? " disabled" : "") + ">" + opts + "</select></label>" + blockBtn + "</div>";
       return '<div class="dev' + (d.blocked ? " blocked" : "") + '"><div class="ico">' + (isMe(d) ? PC : ICON) + "</div>" +
         '<div><div class="name">' + esc(d.name) + " " + st + me + '</div><div class="meta">' + (d.ip ? d.ip + " · " : "") + d.mac + (d.band ? " · " + d.band.replace("wifi_", "") : "") + "</div></div>" +
@@ -1032,7 +1032,7 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
   }
   function aiState() {
     return {
-      routers: routers().map(function (c) { var r = R[c.id] || {}, n = r.net || {}; return { name: c.name, model: { ac5: "Tenda AC5", f3: "Tenda F3", netis: "Netis (view only)" }[c.type] || "Tenda AC5", internet: n.state || "unknown", wan_type: n.type || "", link_mbps: n.linkMbps || null, wifi_security: r.wifi && r.wifi.security || "", firmware: "not exposed by this app", online_devices: (r.devices || []).filter(function (d) { return d.online; }).length, guest_devices: (r.guests || []).length }; }),
+      routers: routers().map(function (c) { var r = R[c.id] || {}, n = r.net || {}; return { name: c.name, model: { ac5: "Tenda AC5", f3: "Tenda F3", netis: "Netis" }[c.type] || "Tenda AC5", internet: n.state || "unknown", wan_type: n.type || "", link_mbps: n.linkMbps || null, wifi_security: r.wifi && r.wifi.security || "", firmware: "not exposed by this app", online_devices: (r.devices || []).filter(function (d) { return d.online; }).length, guest_devices: (r.guests || []).length }; }),
       devices: state.devices.map(function (d) { var f = aiTools.full(d); delete f.mac_tail; f.mac_tail = d.mac.slice(-5); return f; })
     };
   }

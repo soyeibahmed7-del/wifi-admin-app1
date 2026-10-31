@@ -129,10 +129,17 @@
   P._snapshotNetis = function () {
     var self = this;
     return this._netisGet("routerState").then(function (q) {
+      var bl = {}; (q.macFilterList || []).forEach(function (m) { bl[String(m.macAddr).toLowerCase()] = m; });
+      var seen = {};
       var devices = (q.arpList || []).map(function (a) {
-        var host = b64text(a.arp_host_name || "");
-        return { mac: String(a.arp_mac).toLowerCase(), name: host || "Unknown", hostname: host, remark: "", ip: a.arp_ip || "", band: "", online: true, blocked: false,
-          downKBps: 0, upKBps: 0, limitDownKBps: +a.qos_down_limit || 0, limitUpKBps: +a.qos_up_limit || 0, seconds: 0, readonly: true };
+        var host = b64text(a.arp_host_name || ""), mac = String(a.arp_mac).toLowerCase(); seen[mac] = 1;
+        return { mac: mac, name: host || "Unknown", hostname: host, remark: "", ip: a.arp_ip || "", band: "", online: true, blocked: !!bl[mac], rawHost: a.arp_host_name || "",
+          downKBps: 0, upKBps: 0, limitDownKBps: 0, limitUpKBps: 0, seconds: 0, noLimit: true };
+      });
+      Object.keys(bl).forEach(function (mac) {
+        if (seen[mac]) return;
+        var m = bl[mac], host = b64text(m.comment || "");
+        devices.push({ mac: mac, name: host || "Unknown", hostname: host, remark: "", ip: "", band: "", online: false, blocked: true, rawHost: m.comment || "", downKBps: 0, upKBps: 0, limitDownKBps: 0, limitUpKBps: 0, seconds: 0, noLimit: true });
       });
       return self._netisGet("wlan").then(function (w) {
         var m = (w.wlan || [])[0] || {};
@@ -142,6 +149,26 @@
         return { me: { localhostMAC: "" }, devices: devices, guests: [], wifi: wifi, filterMode: "deny" };
       });
     });
+  };
+  // The router's own device page has "pull black" (add) and "relieve black" (del) with rule=0 = deny list. Recorded from that page.
+  P._netisSet = function (fields) {
+    var body = Object.keys(fields).map(function (k) { return k + "=" + encodeURIComponent(fields[k]); }).join("&");
+    return this._req("/cgi-bin/skk_set.cgi", "POST", NETIS_HDR, body).then(function (r) {
+      if (r.status !== 200 || !/SUCCESS/.test(r.text)) throw new Error("The router did not accept the change.");
+    });
+  };
+  P._netisBlock = function (mac, blocked) {
+    var self = this; mac = String(mac).toLowerCase();
+    return this._netisGet("routerState").then(function (q) {
+      var list = q.macFilterList || [], entry = list.filter(function (m) { return String(m.macAddr).toLowerCase() === mac; })[0];
+      if (blocked) {
+        if (entry) return;
+        var a = (q.arpList || []).filter(function (x) { return String(x.arp_mac).toLowerCase() === mac; })[0];
+        return self._netisSet({ comment: (a && a.arp_host_name) || "", id: q.macFilterNum || list.length, rule: 0, macAddr: mac, day: 127, time: "all", macFilterList: "add", app: "mac_filter", wl_link: 0 });
+      }
+      if (!entry) return;
+      return self._netisSet({ macAddr: mac, id: entry.id, rule: 0, day: 127, time: "all", macFilterList: "del", app: "mac_filter", wl_link: 0 });
+    }).then(function () { self._netisState = null; });
   };
   P._internetNetis = function () {
     var q = this._netisState ? Promise.resolve(this._netisState) : this._netisGet("routerState");
@@ -256,6 +283,7 @@
     });
   };
   P.setBlocked = function (mac, blocked) {
+    if (this.type === "netis") return this._netisBlock(mac, blocked);
     return this._change(mac, function (d, s) {
       if (blocked && s.me && s.me.localhostMAC && s.me.localhostMAC.toLowerCase() === d.mac) throw new Error("This is the phone running the app. Blocking it would lock you out.");
       d.blocked = !!blocked;
@@ -284,7 +312,11 @@
     var list = (mf.macFilterList || []).map(function (m) { return { mac: String(m.mac).toLowerCase(), hostname: m.hostname == null ? "Unknown" : m.hostname, remark: m.remark || "" }; });
     return { mode: mf.curFilterMode === "pass" ? "pass" : "deny", list: list, me: ((n.localhost || {}).localhostMAC || "").toLowerCase(), names: names };
   }
-  P.getFilter = function () { if (this.type === "netis") return netisNo(); return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
+  P.getFilter = function () {
+    if (this.type === "netis") return this._netisGet("routerState").then(function (q) {
+      return { mode: "deny", list: (q.macFilterList || []).map(function (m) { return { mac: String(m.macAddr).toLowerCase(), hostname: b64text(m.comment || ""), remark: "" }; }), me: "" };
+    });
+    return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
   // The save command always carries every setting of that page, so we send back what the router told us, changing only the MAC filter.
   // AC5 order: module6=macFilter ... ; F3 order (recorded): module8=macFilter, module6=ping, module7=apIsolation.
   function natForm(n, f3, mode, rows) {
@@ -298,7 +330,18 @@
     return "module6=macFilter&filterMode=" + mode + "&macFilterList=" + list + "&module8=ping&pingEn=" + F((n.ping || {}).pingEn) + common + "&module7=IPTV&IPTVEn=false&VLANArea=&VLANID=&VLANSelect=";
   }
   P.setFilter = function (mode, macs) {
-    if (this.type === "netis") return netisNo();
+    if (this.type === "netis") {
+      var self = this;
+      if (mode !== "deny") return Promise.reject(new Error("This router only supports a blacklist in this version."));
+      var want = {}; (macs || []).forEach(function (m) { want[String(m).toLowerCase()] = 1; });
+      return this._netisGet("routerState").then(function (q) {
+        var have = {}; (q.macFilterList || []).forEach(function (m) { have[String(m.macAddr).toLowerCase()] = 1; });
+        var ops = [];
+        Object.keys(have).forEach(function (m) { if (!want[m]) ops.push(m + "|0"); });
+        Object.keys(want).forEach(function (m) { if (!have[m]) ops.push(m + "|1"); });
+        return ops.reduce(function (p, o) { var x = o.split("|"); return p.then(function () { return self._netisBlock(x[0], x[1] === "1"); }); }, Promise.resolve());
+      });
+    }
     var self = this, f3 = this.type === "f3";
     if (mode !== "pass" && mode !== "deny") return Promise.reject(new Error("Unknown mode"));
     return this._nat().then(function (n) {

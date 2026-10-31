@@ -55,6 +55,14 @@ function mk(type) {
     lie.on = true; r = await T.execute("block_device", { device: "asma" }); ok(!r.ok && r.error === "router_did_not_apply_change", type + ": router ignoring change is NOT reported as success"); lie.on = false;
     r = await T.execute("block_device", { device: "nobody" }); ok(r.error === "device_not_found", type + ": unknown device");
   }
+  { // Netis: cannot identify the phone -> must confirm; speed limit/rename unsupported
+    const { env, devs } = mk("netis"), T = AI.Tools(env); env.isMe = () => false;
+    let r = await T.execute("block_device", { device: "asma" }); ok(!r.ok && r.error === "needs_confirmation" && !devs[0].blocked, "netis: block needs confirmation first");
+    r = await T.execute("block_device", { device: "asma", confirm: true }); ok(r.ok && r.verified && devs[0].blocked, "netis: block after confirmation");
+    r = await T.execute("unblock_device", { device: "asma" }); ok(r.ok && !devs[0].blocked, "netis: unblock needs no confirmation");
+    r = await T.execute("set_speed_limit", { device: "asma", mbps: 2 }); ok(r.error === "not_supported_on_this_router", "netis: speed limit says unsupported");
+    r = await T.execute("rename_device", { device: "asma", name: "x" }); ok(r.error === "not_supported_on_this_router", "netis: rename says unsupported");
+  }
   // Agent loop with a fake Gemini
   const { env, devs } = mk("ac5"), T = AI.Tools(env); let step = 0, seenState = "";
   const http = async (m, u, h, body) => {

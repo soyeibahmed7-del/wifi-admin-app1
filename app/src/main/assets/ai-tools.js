@@ -12,10 +12,10 @@
     { name: "list_devices", description: "List devices currently known on the selected router(s): name, IP, short MAC, online/blocked state, live speed, speed limit.", parameters: { type: "OBJECT", properties: {} } },
     { name: "top_bandwidth", description: "Show the devices using the most bandwidth right now (live speed reported by the router, not history).", parameters: { type: "OBJECT", properties: {} } },
     { name: "network_health", description: "Get the app's health analysis of the network: internet state, device count, warnings.", parameters: { type: "OBJECT", properties: {} } },
-    { name: "block_device", description: "Block a device from the internet. 'device' is a name, IP, MAC (or its last 4-6 characters), or 'this device'.", parameters: { type: "OBJECT", properties: { device: { type: "STRING" } }, required: ["device"] } },
+    { name: "block_device", description: "Block a device from the internet. 'device' is a name, IP, MAC (or its last 4-6 characters), or 'this device'. Set confirm=true ONLY after the user explicitly said yes to a needs_confirmation question.", parameters: { type: "OBJECT", properties: { device: { type: "STRING" }, confirm: { type: "BOOLEAN" } }, required: ["device"] } },
     { name: "unblock_device", description: "Unblock a previously blocked device.", parameters: { type: "OBJECT", properties: { device: { type: "STRING" } }, required: ["device"] } },
     { name: "blacklist_show", description: "Show the WiFi access list (blacklist or whitelist) of each router.", parameters: { type: "OBJECT", properties: {} } },
-    { name: "blacklist_add", description: "Add a device to the router's WiFi blacklist (it is kept off the WiFi). Only works when the router's access list is in blacklist mode.", parameters: { type: "OBJECT", properties: { device: { type: "STRING" } }, required: ["device"] } },
+    { name: "blacklist_add", description: "Add a device to the router's WiFi blacklist (it is kept off the WiFi). Only works when the router's access list is in blacklist mode. Set confirm=true ONLY after the user explicitly said yes to a needs_confirmation question.", parameters: { type: "OBJECT", properties: { device: { type: "STRING" }, confirm: { type: "BOOLEAN" } }, required: ["device"] } },
     { name: "blacklist_remove", description: "Remove a device from the router's WiFi blacklist.", parameters: { type: "OBJECT", properties: { device: { type: "STRING" } }, required: ["device"] } },
     { name: "rename_device", description: "Rename a device on the router (shown in the device list). Name: English letters, numbers, space, dash, underscore, dot; max 20 characters.", parameters: { type: "OBJECT", properties: { device: { type: "STRING" }, name: { type: "STRING" } }, required: ["device", "name"] } },
     { name: "mark_known", description: "Mark a device as known/trusted in the app (phone-only label, does not change the router). Use device 'all' to mark every online device.", parameters: { type: "OBJECT", properties: { device: { type: "STRING" } }, required: ["device"] } },
@@ -51,7 +51,10 @@
     function routerHost(rid) { var r = env.routers().filter(function (x) { return x.id === rid; })[0]; return r ? r.host : ""; }
     function refuse(error, extra) { var o = { ok: false, error: error }; if (extra) Object.keys(extra).forEach(function (k) { o[k] = extra[k]; }); return o; }
     function unresolved(r) { return r.candidates ? refuse("ambiguous_device", { candidates: r.candidates }) : refuse(r.why || "device_not_found"); }
-    function guard(d) {
+    function rtype(rid) { var r = env.routers().filter(function (x) { return x.id === rid; })[0]; return r ? r.type : ""; }
+    function guard(d, args) {
+      // Some routers (Netis) do not tell the app which device is the controlling phone, so ask the user first.
+      if (rtype(d.rid) === "netis" && !(args && args.confirm === true) && !env.isMe(d)) return refuse("needs_confirmation", { reason: "This router cannot tell the app which device is your phone. If this device is the phone you are using, blocking it would cut you off. Ask the user to confirm; call again with confirm=true only if they say yes.", device: brief(d) });
       if (env.isMe(d)) return refuse("blocked_by_safety_rule", { reason: "This is the phone/device controlling the router. Changing it could lock you out, so it is never changed from here." });
       if (d.ip && d.ip === routerHost(d.rid)) return refuse("blocked_by_safety_rule", { reason: "This is the router itself." });
       return null;
@@ -60,7 +63,7 @@
 
     function setBlock(args, want) {
       var r = resolve(args.device); if (!r.dev) return Promise.resolve(unresolved(r));
-      var d = r.dev, g = want ? guard(d) : null; if (g) return Promise.resolve(g);
+      var d = r.dev, g = want ? guard(d, args) : null; if (g) return Promise.resolve(g);
       if (!!d.blocked === want) return Promise.resolve({ ok: true, verified: true, note: want ? "already_blocked" : "already_unblocked", device: brief(d) });
       return env.api("/api/block", { rid: d.rid, mac: d.mac, blocked: want }).then(function () { return after(d); }).then(function (n) {
         var ok = !!n && !!n.blocked === want;
@@ -87,7 +90,7 @@
       return p.then(function (d) {
         if (d && d.ok === false) return d;
         if (!d) return unresolved(r);
-        var g = add ? guard(d) : null; if (g) return g;
+        var g = add ? guard(d, args) : null; if (g) return g;
         return filterOf(d.rid).then(function (f) {
           if (f.mode === "pass") return refuse("router_in_whitelist_mode", { reason: "This router uses a whitelist (only listed devices may connect). Use the Access List tab on the WiFi page to change mode." });
           var macs = (f.list || []).map(function (m) { return m.mac; }), has = macs.indexOf(d.mac) > -1;
@@ -104,7 +107,9 @@
       var m = Number(args.mbps);
       if (!isFinite(m) || m < 0 || m > 1000) return Promise.resolve(refuse("invalid_value", { reason: "mbps must be between 0 and 1000" }));
       var r = resolve(args.device); if (!r.dev) return Promise.resolve(unresolved(r));
-      var d = r.dev, g = guard(d); if (g && m > 0) return Promise.resolve(g);
+      var d = r.dev;
+      if (rtype(d.rid) === "netis") return Promise.resolve(refuse("not_supported_on_this_router", { reason: "Speed limits are not available on Netis routers in this version." }));
+      var g = guard(d, args); if (g && m > 0) return Promise.resolve(g);
       return env.api("/api/limit", { rid: d.rid, mac: d.mac, kbps: m ? Math.round(m * 125) : 0 }).then(function () { return after(d); }).then(function (n) {
         var cur = n && n.limitDownKBps > 0 && n.limitDownKBps < 38528 ? mbps(n.limitDownKBps) : 0;
         var ok = !!n && (m === 0 ? cur === 0 : Math.abs(cur - m) <= Math.max(0.3, m * 0.1));
@@ -116,6 +121,7 @@
     function rename(args) {
       var r = resolve(args.device); if (!r.dev) return Promise.resolve(unresolved(r));
       var d = r.dev, n = cleanName(args.name);
+      if (rtype(d.rid) === "netis") return Promise.resolve(refuse("not_supported_on_this_router", { reason: "Renaming is not available on Netis routers in this version." }));
       if (!n) return Promise.resolve(refuse("invalid_name", { reason: "Use English letters, numbers, space, - _ . only (max 20 characters)." }));
       return env.api("/api/rename", { rid: d.rid, mac: d.mac, name: n }).then(function () { return after(d); }).then(function (x) {
         return x && x.name === n ? { ok: true, verified: true, device: brief(x), saved_as: n } : refuse("router_did_not_apply_change", { device: brief(d) });
@@ -186,7 +192,7 @@
     "You are RouterMate AI, the assistant inside a Wi-Fi router admin app for Tenda F3 and Tenda AC5 routers.",
     "Answer in the user's language (English or Bangla). Be short and practical.",
     "Use ONLY the data in STATE and the results of function calls. Never invent numbers, devices or features.",
-    "Netis routers are view-only: do not try to block, limit, rename or blacklist devices on them; say it is not supported yet. Router speeds are live snapshots; the router keeps no history, so you cannot know past usage or why a device disconnected.",
+    "On Netis routers you can list, block/unblock and blacklist devices, but not limit speed or rename. If a result says needs_confirmation, ask the user a clear yes/no question and call again with confirm=true only after a yes. Router speeds are live snapshots; the router keeps no history, so you cannot know past usage or why a device disconnected.",
     "You can act only through the provided functions. You can rename devices and mark devices known/unknown. You cannot change WiFi name/password, reboot, or turn guest WiFi on/off: if asked, say that this version cannot and tell the user to use the router page (globe button).",
     "Run ordinary block/unblock/blacklist/limit requests immediately without asking again. If a function returns ok:false, tell the user exactly what failed; never claim success unless a result says ok:true and verified:true.",
     "If a function says ambiguous_device, ask which one (show names). Never try to bypass blocked_by_safety_rule.",
