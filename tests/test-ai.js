@@ -1,6 +1,7 @@
 // Tests for the AI tool layer with a fake router environment and a fake Gemini backend.
 const AI = require("../app/src/main/assets/ai-tools.js");
 let fails = 0; const ok = (c, m) => { if (!c) { fails++; console.log("FAIL:", m); } else console.log("ok:", m); };
+const knownSet = new Set();
 function mk(type) {
   const devs = [
     { rid: "r1", rname: "R", mac: "aa:aa:aa:aa:aa:01", name: "Asma Phone", ip: "192.168.0.101", online: true, blocked: false, downKBps: 300, upKBps: 10, limitDownKBps: 38528 },
@@ -11,11 +12,12 @@ function mk(type) {
   let filter = { mode: "deny", list: [] }; const lie = { on: false };
   const env = {
     devices: () => devs, routers: () => [{ id: "r1", name: "R", type, host: "192.168.0.1" }],
-    isMe: d => d.mac.endsWith("04"), known: () => false, health: () => ({ score: 90 }),
+    isMe: d => d.mac.endsWith("04"), known: m => knownSet.has(m), setKnown: (m, on) => (on ? knownSet.add(m) : knownSet.delete(m)), health: () => ({ score: 90 }),
     poll: async () => {},
     api: async (path, b) => {
       if (lie.on) return {};                                   // router "accepts" but changes nothing
       if (path === "/api/block") { devs.find(d => d.mac === b.mac).blocked = b.blocked; return { ok: true }; }
+      if (path === "/api/rename") { devs.find(d => d.mac === b.mac).name = b.name; return { ok: true }; }
       if (path === "/api/limit") { devs.find(d => d.mac === b.mac).limitDownKBps = b.kbps || 38528; return { ok: true }; }
       if (path === "/api/filter") return JSON.parse(JSON.stringify(filter));
       if (path === "/api/filter/set") { filter = { mode: b.mode, list: b.macs.map(m => ({ mac: m, remark: devs.find(d => d.mac === m)?.name || "" })) }; return { ok: true }; }
@@ -40,6 +42,14 @@ function mk(type) {
     r = await T.execute("set_speed_limit", { device: "asma", mbps: 2 }); ok(r.ok && r.limit_mbps > 1.8 && r.limit_mbps < 2.2, type + ": speed limit verified");
     r = await T.execute("set_speed_limit", { device: "asma", mbps: 0 }); ok(r.ok && r.limit_mbps === 0, type + ": limit removed");
     r = await T.execute("set_speed_limit", { device: "asma", mbps: -5 }); ok(r.error === "invalid_value", type + ": rejects invalid mbps");
+    r = await T.execute("rename_device", { device: "asma", name: "Asma Mobile" }); ok(r.ok && r.verified && devs[0].name === "Asma Mobile", type + ": rename verified");
+    r = await T.execute("rename_device", { device: "Asma Mobile", name: "<script>\tx\n" }); ok(r.ok && devs[0].name === "scriptx", type + ": rename strips unsafe characters");
+    devs[0].name = "Asma Phone";
+    r = await T.execute("rename_device", { device: "Asma", name: "\u09a6\u09be" }); ok(r.error === "invalid_name", type + ": rename rejects non-ASCII only name");
+    devs[0].name = "Asma Phone";
+    r = await T.execute("mark_known", { device: "asma" }); ok(r.ok && knownSet.has(devs[0].mac), type + ": mark known");
+    r = await T.execute("mark_unknown", { device: "asma" }); ok(r.ok && !knownSet.has(devs[0].mac), type + ": mark unknown");
+    r = await T.execute("mark_known", { device: "all" }); ok(r.ok && r.count === 4, type + ": mark all online known"); knownSet.clear();
     r = await T.execute("top_bandwidth", {}); ok(r.top[0].name === "Asma Phone", type + ": top bandwidth");
     r = await T.execute("rm -rf", {}); ok(r.error === "unknown_function", type + ": unknown function rejected");
     lie.on = true; r = await T.execute("block_device", { device: "asma" }); ok(!r.ok && r.error === "router_did_not_apply_change", type + ": router ignoring change is NOT reported as success"); lie.on = false;

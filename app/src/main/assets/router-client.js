@@ -210,6 +210,13 @@
       d.blocked = !!blocked;
     });
   };
+  // Router-side name (the "remark" column). Plain ASCII only, so the router can never garble it or be fed control characters.
+  RouterClient.cleanName = function (v) { return String(v == null ? "" : v).replace(/[^A-Za-z0-9 _.-]/g, "").replace(/\s+/g, " ").trim().slice(0, 20); };
+  P.setRemark = function (mac, name) {
+    var n = RouterClient.cleanName(name);
+    if (!n) return Promise.reject(new Error("Invalid name"));
+    return this._change(mac, function (d) { d.remark = n; });
+  };
   P.setLimit = function (mac, kbps) {
     return this._change(mac, function (d) { d.limitDownKBps = d.limitUpKBps = kbps > 0 ? Math.round(kbps) : UNLIMITED; });
   };
