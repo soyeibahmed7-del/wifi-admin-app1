@@ -18,7 +18,7 @@ The backend holds two secrets: your Gemini key and an app token (a long password
 4. In RouterMate: **Settings > AI backend**: paste the link and the same app token, press Save.
 5. Open the **AI** tab and ask something.
 
-Optional: use another model with `npx wrangler deploy --var GEMINI_MODEL:gemini-2.5-flash`.
+Optional: use another model with `npx wrangler deploy --var GEMINI_MODEL:gemini-3.8-flash`.
 
 ## How it is kept safe
 - The Gemini key and APP_TOKEN exist only as Worker secrets. They are not in the app, the repo, or the APK.

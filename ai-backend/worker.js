@@ -3,7 +3,7 @@
 //   GEMINI_API_KEY  secret  your Google AI Studio key
 //   APP_TOKEN       secret  a long random password; the app sends it in "Authorization: Bearer ..."
 //   GEMINI_MODEL    var     optional, default below
-const DEFAULT_MODEL = "gemini-2.5-flash";
+const DEFAULT_MODEL = "gemini-3.8-flash";
 const MAX_BODY = 60_000;      // bytes
 const MAX_TURNS = 40;         // contents entries per request
 
