@@ -3,8 +3,8 @@
 //   GEMINI_API_KEY  secret  your Google AI Studio key
 //   APP_TOKEN       secret  a long random password; the app sends it in "Authorization: Bearer ..."
 //   GEMINI_MODEL    var     optional, default below
-const DEFAULT_MODEL = "gemini-3.8-flash";
-const FALLBACKS = ["gemini-3.6-flash", "gemini-3.5-flash-lite"];
+const DEFAULT_MODEL = "gemini-3.5-flash-lite";
+const FALLBACKS = ["gemini-3.6-flash", "gemini-3.8-flash"];
 const MAX_BODY = 60_000;      // bytes
 const MAX_TURNS = 40;         // contents entries per request
 
@@ -46,7 +46,7 @@ export default {
           method: "POST",
           headers: { "Content-Type": "application/json", "x-goog-api-key": env.GEMINI_API_KEY },
           body: JSON.stringify(payload),
-          signal: AbortSignal.timeout(20000),
+          signal: AbortSignal.timeout(15000),
         });
         const text = await r.text();
         if (r.ok) return new Response(text, { status: 200, headers: { "Content-Type": "application/json", "X-Model": model } });
