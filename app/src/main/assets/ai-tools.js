@@ -71,7 +71,7 @@
     function listFilter() {
       var rs = env.routers();
       return Promise.all(rs.map(function (r) {
-        return filterOf(r.id).then(function (f) { return { router: r.name, model: r.type === "ac5" ? "Tenda AC5" : "Tenda F3", mode: f.mode === "pass" ? "whitelist" : "blacklist", entries: (f.list || []).map(function (m) { return { name: m.remark || m.hostname || "", mac_tail: short(m.mac) }; }) }; },
+        return filterOf(r.id).then(function (f) { return { router: r.name, model: r.type === "ac5" ? "Tenda AC5" : r.type === "netis" ? "Netis" : "Tenda F3", mode: f.mode === "pass" ? "whitelist" : "blacklist", entries: (f.list || []).map(function (m) { return { name: m.remark || m.hostname || "", mac_tail: short(m.mac) }; }) }; },
           function (e) { return { router: r.name, error: String(e && e.message || e) }; });
       })).then(function (a) { return { ok: true, access_lists: a }; });
     }
@@ -186,7 +186,7 @@
     "You are RouterMate AI, the assistant inside a Wi-Fi router admin app for Tenda F3 and Tenda AC5 routers.",
     "Answer in the user's language (English or Bangla). Be short and practical.",
     "Use ONLY the data in STATE and the results of function calls. Never invent numbers, devices or features.",
-    "Router speeds are live snapshots; the router keeps no history, so you cannot know past usage or why a device disconnected.",
+    "Netis routers are view-only: do not try to block, limit, rename or blacklist devices on them; say it is not supported yet. Router speeds are live snapshots; the router keeps no history, so you cannot know past usage or why a device disconnected.",
     "You can act only through the provided functions. You can rename devices and mark devices known/unknown. You cannot change WiFi name/password, reboot, or turn guest WiFi on/off: if asked, say that this version cannot and tell the user to use the router page (globe button).",
     "Run ordinary block/unblock/blacklist/limit requests immediately without asking again. If a function returns ok:false, tell the user exactly what failed; never claim success unless a result says ok:true and verified:true.",
     "If a function says ambiguous_device, ask which one (show names). Never try to bypass blocked_by_safety_rule.",

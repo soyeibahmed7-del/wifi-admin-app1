@@ -202,3 +202,33 @@ server.listen(0, async () => {
   } catch (e) { console.error("FAILED:", e); process.exitCode = 1; }
   server.close();
 });
+
+// ---- Netis (view-only) with a fake router that mimics the recording ----
+(async () => {
+  const http = require("http");
+  let loggedIn = false, bad = 0;
+  const srv = http.createServer((req, res) => {
+    let b = ""; req.on("data", c => (b += c)); req.on("end", () => {
+      if (req.url === "/cgi-bin/login.cgi") { loggedIn = b === "password=" + encodeURIComponent(Buffer.from("secret12").toString("base64")); res.end(loggedIn ? '["SUCCESS"]' : '["FAIL"]'); return; }
+      if (req.url === "/cgi-bin/skk_get.cgi") {
+        if (!loggedIn) { res.end("<html>login</html>"); return; }
+        if (/app=wlan/.test(b)) res.end('{"wlan":[{"id":"1","ssid":"' + Buffer.from("HomeNet").toString("base64") + '","wepKey":"x",},],}');
+        else res.end('{"arpList":[{"id":"1","arp_ip":"192.168.1.101","arp_mac":"86:64:18:42:FE:3F","arp_host_name":"' + Buffer.from("Phone").toString("base64") + '","qos_down_limit":"0","qos_up_limit":"0",},],"macFilterList":[],"connected":"1","st_wanIpAddr":"10.15.6.78","st_wanDefGw":"10.15.0.1",}');
+        return;
+      }
+      res.statusCode = 404; res.end();
+    });
+  });
+  await new Promise(r => srv.listen(0, r));
+  const native = { http: (m, u, h, body) => new Promise((ok, no) => { const o = new URL(u); const q = http.request({ hostname: o.hostname, port: o.port, path: o.pathname, method: m, headers: Object.assign({}, h, { "Content-Length": Buffer.byteLength(body || "") }) }, r => { let t = ""; r.on("data", c => (t += c)); r.on("end", () => ok({ status: r.statusCode, location: r.headers.location || "", cookies: [], text: t })); }); q.on("error", no); q.end(body || ""); }), md5: () => "", aes: (e, s) => s, b64: s => Buffer.from(s).toString("base64") };
+  const RC = require("../app/src/main/assets/router-client.js");
+  const good = new RC({ url: "http://127.0.0.1:" + srv.address().port, password: "secret12", native, type: "netis" });
+  const s = await good.snapshot(), n = await good.internet();
+  const t = (c, m) => { console.log(c ? "ok:" : "FAIL:", m); if (!c) bad++; };
+  t(s.devices.length === 1 && s.devices[0].name === "Phone" && s.devices[0].mac === "86:64:18:42:fe:3f" && s.devices[0].readonly, "Netis: device list read with auto login (trailing commas ok)");
+  t(s.wifi.ssid24 === "HomeNet", "Netis: WiFi name read, password never read");
+  t(n.state === "ok" && n.ip === "10.15.6.78", "Netis: internet status");
+  let err = ""; try { await good.setBlocked("86:64:18:42:fe:3f", true); } catch (e) { err = e.message; } t(/view-only/.test(err), "Netis: blocking refused (view-only)");
+  loggedIn = false; const wrong = new RC({ url: "http://127.0.0.1:" + srv.address().port, password: "nope", native, type: "netis" }); err = ""; try { await wrong.snapshot(); } catch (e) { err = e.message; } t(/login failed/i.test(err), "Netis: wrong password reported");
+  srv.close(); console.log(bad ? "NETIS FAILED" : "NETIS TESTS PASSED"); if (bad) process.exit(1);
+})();

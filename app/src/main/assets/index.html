@@ -463,7 +463,7 @@ h1 { font-size: 26px; }
           <h2 style="margin-top:16px" data-i18n="add_router"></h2>
           <div class="field"><label for="a-name" data-i18n="s_name"></label><input id="a-name" type="text"></div>
           <div class="field"><label for="a-url" data-i18n="s_url"></label><input id="a-url" type="text" value="http://192.168.0.1" inputmode="url" autocapitalize="off"></div>
-          <div class="field"><label for="a-type" data-i18n="a_type"></label><select id="a-type" class="rt-select"><option value="f3">Tenda F3</option><option value="ac5">Tenda AC5</option></select></div>
+          <div class="field"><label for="a-type" data-i18n="a_type"></label><select id="a-type" class="rt-select"><option value="f3">Tenda F3</option><option value="ac5">Tenda AC5</option><option value="netis">Netis (view only)</option></select></div>
           <div class="field"><label for="a-pw" data-i18n="s_rpw"></label><input id="a-pw" type="password"></div>
           <div class="login-err" id="add-err" role="alert"></div>
           <button class="btn primary" type="submit" id="add-btn" data-i18n="add_btn"></button>
@@ -762,7 +762,7 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
     $("#nets").innerHTML = ids.map(function (id) {
       var r = R[id], net = r.net, c = routers().filter(function (x) { return x.id === id; })[0] || {};
       var host = (c.url || "").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-      return '<div class="panel net hero ' + (net.state === "ok" ? "ok" : "bad") + '"><img class="hero-img" src="img/router.png" alt=""><div class="hero-t"><small>' + esc(t("router_status")) + (multi() ? " · " + esc(r.name) : "") + '</small><div class="net-head"><span class="net-dot"></span><b>' + esc(t("net_" + net.state)) + '</b></div><p class="hint">' + esc(t("nm_" + net.state)) + '</p><small class="mono">Tenda ' + (c.type === "ac5" ? "AC5" : "F3") + " · " + esc(host) + "</small></div></div>";
+      return '<div class="panel net hero ' + (net.state === "ok" ? "ok" : "bad") + '"><img class="hero-img" src="img/router.png" alt=""><div class="hero-t"><small>' + esc(t("router_status")) + (multi() ? " · " + esc(r.name) : "") + '</small><div class="net-head"><span class="net-dot"></span><b>' + esc(t("net_" + net.state)) + '</b></div><p class="hint">' + esc(t("nm_" + net.state)) + '</p><small class="mono">' + ({ ac5: "Tenda AC5", f3: "Tenda F3", netis: "Netis" }[c.type] || "Tenda AC5") + " · " + esc(host) + "</small></div></div>";
     }).join("");
   }
   function renderLists() {
@@ -1031,7 +1031,7 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
   }
   function aiState() {
     return {
-      routers: routers().map(function (c) { var r = R[c.id] || {}, n = r.net || {}; return { name: c.name, model: c.type === "ac5" ? "Tenda AC5" : "Tenda F3", internet: n.state || "unknown", wan_type: n.type || "", link_mbps: n.linkMbps || null, wifi_security: r.wifi && r.wifi.security || "", firmware: "not exposed by this app", online_devices: (r.devices || []).filter(function (d) { return d.online; }).length, guest_devices: (r.guests || []).length }; }),
+      routers: routers().map(function (c) { var r = R[c.id] || {}, n = r.net || {}; return { name: c.name, model: { ac5: "Tenda AC5", f3: "Tenda F3", netis: "Netis (view only)" }[c.type] || "Tenda AC5", internet: n.state || "unknown", wan_type: n.type || "", link_mbps: n.linkMbps || null, wifi_security: r.wifi && r.wifi.security || "", firmware: "not exposed by this app", online_devices: (r.devices || []).filter(function (d) { return d.online; }).length, guest_devices: (r.guests || []).length }; }),
       devices: state.devices.map(function (d) { var f = aiTools.full(d); delete f.mac_tail; f.mac_tail = d.mac.slice(-5); return f; })
     };
   }

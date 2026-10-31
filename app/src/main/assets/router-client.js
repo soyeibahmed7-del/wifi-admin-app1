@@ -14,7 +14,7 @@
     this.url = String(opts.url || "").replace(/\/+$/, "");
     this.password = opts.password || "";
     this.n = opts.native;
-    this.type = opts.type === "f3" ? "f3" : "ac5"; // "f3" = Tenda F3 (plain-text replies, read-only here)
+    this.type = opts.type === "f3" ? "f3" : opts.type === "netis" ? "netis" : "ac5"; // "f3" = Tenda F3 (plain-text replies, read-only here)
     this.cookie = "";
   }
   var P = RouterClient.prototype;
@@ -45,6 +45,7 @@
     var self = this;
     if (!this.password) return Promise.resolve(false);
     this.cookie = "";
+    if (this.type === "netis") return this._netisLogin();
     return this._req("/goform/getstok?random=" + Math.random(), "GET", { Referer: this.url + "/login.html" }).then(function (t) {
       var random;
       try { random = JSON.parse(self._decrypt(t.text)).random; } catch (e) { return false; }
@@ -103,6 +104,53 @@
       return { ssid24: b.wifiSSID, security: b.wifiSecurityMode, hidden: b.wifiHideSSID === "true", off: (j.wifiEn || {}).wifiEn === "false" };
     }).catch(function () { return {}; });
   };
+  // ---- Netis (WF2409E V6 and similar), view-only. Recorded API: POST /cgi-bin/login.cgi (password = urlencode(base64(pw)), reply ["SUCCESS"]),
+  // then POST /cgi-bin/skk_get.cgi (mode_name=skk_get&app=routerState|wlan). The router tracks the session by client address, no cookie.
+  // Blocking is NOT built: the recording does not show whether the MAC list is a blacklist or a whitelist, and a wrong guess could cut everyone off.
+  var NETIS_HDR = { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" };
+  function relaxed(t) { return JSON.parse(String(t).replace(/,\s*([}\]])/g, "$1")); }
+  function b64text(v) { try { return decodeURIComponent(escape(atob(v))); } catch (e) { try { return atob(v); } catch (x) { return ""; } } }
+  P._netisLogin = function () {
+    var self = this;
+    return this._req("/cgi-bin/login.cgi", "POST", NETIS_HDR, "password=" + encodeURIComponent(this.n.b64(this.password))).then(function (r) { return r.status === 200 && /SUCCESS/.test(r.text); });
+  };
+  P._netisGet = function (app) {
+    var self = this, body = "mode_name=skk_get&wl_link=0&app=" + app;
+    function once() { return self._req("/cgi-bin/skk_get.cgi", "POST", NETIS_HDR, body); }
+    function ok(r) { return r.status === 200 && /^\s*\{/.test(r.text); }
+    return once().then(function (r) {
+      if (ok(r)) return relaxed(r.text);
+      return self.login().then(function (good) {
+        if (!good) throw new Error("Router login failed. Check the router password.");
+        return once().then(function (r2) { if (!ok(r2)) throw new Error("Router still asks for a login after signing in."); return relaxed(r2.text); });
+      });
+    });
+  };
+  P._snapshotNetis = function () {
+    var self = this;
+    return this._netisGet("routerState").then(function (q) {
+      var devices = (q.arpList || []).map(function (a) {
+        var host = b64text(a.arp_host_name || "");
+        return { mac: String(a.arp_mac).toLowerCase(), name: host || "Unknown", hostname: host, remark: "", ip: a.arp_ip || "", band: "", online: true, blocked: false,
+          downKBps: 0, upKBps: 0, limitDownKBps: +a.qos_down_limit || 0, limitUpKBps: +a.qos_up_limit || 0, seconds: 0, readonly: true };
+      });
+      return self._netisGet("wlan").then(function (w) {
+        var m = (w.wlan || [])[0] || {};
+        return { ssid24: b64text(m.ssid || ""), ssid5: "", security: "", hidden: false, off: false };
+      }, function () { return { ssid24: "", ssid5: "", security: "" }; }).then(function (wifi) {
+        self._netisState = q;
+        return { me: { localhostMAC: "" }, devices: devices, guests: [], wifi: wifi, filterMode: "deny" };
+      });
+    });
+  };
+  P._internetNetis = function () {
+    var q = this._netisState ? Promise.resolve(this._netisState) : this._netisGet("routerState");
+    return q.then(function (s) {
+      var ip = s.st_wanIpAddr || "", hasIp = !!ip && ip !== "0.0.0.0", up = String(s.connected) === "1";
+      return { state: hasIp && up ? "ok" : !hasIp ? "no_ip" : "no_internet", ip: hasIp ? ip : "", gateway: s.st_wanDefGw && s.st_wanDefGw !== "0.0.0.0" ? s.st_wanDefGw : "", dns: s.st_dns1 || "", type: "", linkMbps: 0, seconds: 0, code: "" };
+    });
+  };
+  function netisNo() { return Promise.reject(new Error("This router (Netis) is view-only in this version.")); }
   P._snapshotF3 = function () {
     var self = this;
     return this._getJson("/goform/getQos?random=" + Math.random() + "&modules=" + encodeURIComponent("localhost,onlineList,blackList,macFilter")).then(function (q) {
@@ -127,6 +175,7 @@
   };
 
   P.snapshot = function () {
+    if (this.type === "netis") return this._snapshotNetis();
     if (this.type === "f3") return this._snapshotF3();
     return this._getJson("/goform/getQos?random=" + Math.random() + "&modules=" + encodeURIComponent(MODULES)).then(function (q) {
       var mf = (q.macFilter && q.macFilter.macFilterList) || [];
@@ -160,6 +209,7 @@
   //   xx06 connected and online, 0207 IP conflict, 0307 PPPoE user/password rejected. (xx: 01 static, 02 DHCP, 03 PPPoE.)
   // state: ok | unplugged | connecting | no_internet | ip_conflict | auth_failed | no_ip (fallback when the code is not known)
   P.internet = function () {
+    if (this.type === "netis") return this._internetNetis();
     return this._getJson("/goform/getStatus?random=" + Math.random() + "&modules=" + encodeURIComponent(this.type === "f3" ? "internetStatus,systemInfo,wanAdvCfg" : "internetStatus,systemInfo,wanAdvCfg,sysTime")).then(function (q) {
       var si = q.systemInfo || {}, adv = q.wanAdvCfg || {}, is = q.internetStatus || {}, st = q.sysTime || {};
       var code = String(is.wanConnectStatus || ""), msg = code.slice(3, 7), kind = msg.slice(0, 2), n = msg.slice(2);
@@ -189,6 +239,7 @@
     return this._post("/goform/setQos", "module1=onlineList&qosList=" + encodeURIComponent(rows.join("\n")));
   };
   P.apply = function (devices) {
+    if (this.type === "netis") return netisNo();
     if (this.type === "f3") return this._applyF3(devices);
     var online = devices.filter(function (d) { return d.online && !d.blocked; }).map(function (d) { return row(d, true); });
     var blocked = devices.filter(function (d) { return d.blocked; }).map(function (d) { return row(d, false, true); });
@@ -233,7 +284,7 @@
     var list = (mf.macFilterList || []).map(function (m) { return { mac: String(m.mac).toLowerCase(), hostname: m.hostname == null ? "Unknown" : m.hostname, remark: m.remark || "" }; });
     return { mode: mf.curFilterMode === "pass" ? "pass" : "deny", list: list, me: ((n.localhost || {}).localhostMAC || "").toLowerCase(), names: names };
   }
-  P.getFilter = function () { return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
+  P.getFilter = function () { if (this.type === "netis") return netisNo(); return this._nat().then(function (n) { var v = natView(n); return { mode: v.mode, list: v.list, me: v.me }; }); };
   // The save command always carries every setting of that page, so we send back what the router told us, changing only the MAC filter.
   // AC5 order: module6=macFilter ... ; F3 order (recorded): module8=macFilter, module6=ping, module7=apIsolation.
   function natForm(n, f3, mode, rows) {
@@ -247,6 +298,7 @@
     return "module6=macFilter&filterMode=" + mode + "&macFilterList=" + list + "&module8=ping&pingEn=" + F((n.ping || {}).pingEn) + common + "&module7=IPTV&IPTVEn=false&VLANArea=&VLANID=&VLANSelect=";
   }
   P.setFilter = function (mode, macs) {
+    if (this.type === "netis") return netisNo();
     var self = this, f3 = this.type === "f3";
     if (mode !== "pass" && mode !== "deny") return Promise.reject(new Error("Unknown mode"));
     return this._nat().then(function (n) {
