@@ -336,6 +336,7 @@ h1 { font-size: 26px; }
     <form class="login-card" id="setup-form" autocomplete="off">
       <div class="lockup"><img src="img/lockup.png" alt="RouteMate"></div>
       <div><h1 data-i18n="setup_title"></h1><p data-i18n="setup_sub"></p></div>
+      <div class="field"><label for="s-type" data-i18n="a_type"></label><select id="s-type" class="rt-select"><option value="ac5">Tenda AC5</option><option value="f3">Tenda F3</option><option value="netis">Netis (view only)</option></select></div>
       <div class="field"><label for="s-name" data-i18n="s_name"></label><input id="s-name" type="text" value="Router 1"></div>
       <div class="field"><label for="s-url" data-i18n="s_url"></label><input id="s-url" type="text" value="http://192.168.1.1" inputmode="url" autocapitalize="off"></div>
       <div class="field"><label for="s-rpw" data-i18n="s_rpw"></label><input id="s-rpw" type="password"></div>
@@ -1115,6 +1116,8 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
 
   applyStatic();
   function showFirstScreen() { cfg = loadCfg(); $("#setup").hidden = !!cfg; $("#login").hidden = !cfg; $("#app").hidden = true; }
+  var DEF_URL = { ac5: "http://192.168.1.1", f3: "http://192.168.0.1", netis: "http://192.168.1.1" };
+  $("#s-type").addEventListener("change", function () { var u = $("#s-url"); if (Object.keys(DEF_URL).some(function (k) { return DEF_URL[k] === u.value.trim(); })) u.value = DEF_URL[this.value]; });
   $("#setup-form").addEventListener("submit", function (e) {
     e.preventDefault();
     var err = $("#setup-err"), rname = $("#s-name").value.trim() || "Router 1", url = $("#s-url").value.trim().replace(/\/+$/, ""), rpw = $("#s-rpw").value, a1 = $("#s-apw").value, a2 = $("#s-apw2").value;
@@ -1123,11 +1126,11 @@ sa_title: "নিরাপত্তা পরামর্শ", sa_ok: "রাউ
     if (a1.length < 6) { err.textContent = t("s_short"); return; }
     if (a1 !== a2) { err.textContent = t("s_match"); return; }
     $("#setup-btn").disabled = true; err.textContent = t("s_checking");
-    var test = new RouterClient({ url: url, password: rpw, native: nativeApi });
+    var rtype = $("#s-type").value, test = new RouterClient({ url: url, password: rpw, native: nativeApi, type: rtype });
     test.login().then(function (ok) {
       if (!ok) throw new Error(t("s_rbad"));
       var salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
-      localStorage.setItem("wifi-cfg", JSON.stringify({ routers: [{ id: "r1", name: rname, url: url, rpw: rpw }], salt: salt, hash: Native.sha256(salt + a1) }));
+      localStorage.setItem("wifi-cfg", JSON.stringify({ routers: [{ id: "r1", name: rname, url: url, rpw: rpw, type: rtype }], salt: salt, hash: Native.sha256(salt + a1) }));
       cfg = loadCfg(); unlocked = true; user = USER;
       $("#setup").hidden = true; $("#s-rpw").value = $("#s-apw").value = $("#s-apw2").value = ""; err.textContent = "";
       start();
